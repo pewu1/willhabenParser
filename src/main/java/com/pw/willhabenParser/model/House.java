@@ -1,4 +1,4 @@
-package com.pw.model;
+package com.pw.willhabenParser.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -12,7 +12,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static com.pw.Parser.DECIMAL_FORMAT;
+import static com.pw.willhabenParser.service.ParserService.DECIMAL_FORMAT;
 
 public class House implements Serializable {
 

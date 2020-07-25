@@ -1,22 +1,24 @@
-package com.pw;
+package com.pw.willhabenParser.service;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pw.model.House;
+import com.pw.willhabenParser.model.House;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Parser {
+@Component
+public class ParserService {
 
     private static final int AREA_CODE = 4;
     private static final String CSV_COLS = "editDate;postalCode;location;district;state;price;size;avgPrice;groundArea;rooms;objectType;age;condition;heatingType;info;transactionFee;link;pictureLink;hashCode\r\n";
@@ -27,15 +29,19 @@ public class Parser {
     private static final String ERROR_DIR = DATA_DIR + "errors" + File.separator;
     public static final String DECIMAL_FORMAT = "###,###.##";
 
+    @Autowired
+    ValidationService validationService;
 
-    public static void main(String[] args) throws IOException {
+    @Autowired
+    ObjectMapper objectMapper;
+
+    public List<House> fetchData() throws IOException {
         Document doc = Jsoup.connect(BUY_HOUSE_URL).get();
         Element resultList = doc.getElementById("resultlist");
         if (resultList == null) {
             System.out.println("Error, no result list");
         }
         int counter = 2;
-        ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         List<House> verifiedHouseList = new ArrayList<>();
         List<House> errorsList = new ArrayList<>();
@@ -60,7 +66,7 @@ public class Parser {
         if (listOfErrorFiles != null && listOfErrorFiles.length > 0) {
             for (File file : listOfErrorFiles) {
                 House house = objectMapper.readValue(file, House.class);
-                if (isVerified(house)) {
+                if (validationService.isVerified(house)) {
                     System.out.println("Found correct house in error files");
                     if (!verifiedHouseList.contains(house)) {
                         verifiedHouseList.add(house);
@@ -94,7 +100,7 @@ public class Parser {
                     try {
                         House house = parseEntry(entries.get(i), linksSet, errorLinksSet);
 
-                        if (isHouseNotPersisted(listOfFiles, house) && isVerified(house)) {
+                        if (isHouseNotPersisted(listOfFiles, house) && validationService.isVerified(house)) {
                             System.out.println("Persisting house");
                             verifiedHouseList.add(house);
                             objectMapper.writeValue(new File(JSON_DIR + house.hashCode() + ".json"), house);
@@ -119,19 +125,20 @@ public class Parser {
         completeList.addAll(verifiedHouseList);
         completeList.addAll(errorsList);
 
-        writeToHtmlFile(getHTML(sortAvgPrice(verifiedHouseList)), "avgPrice.html");
-        writeToHtmlFile(getHTML(getHousesBelowAveragePrice(verifiedHouseList)), "belowAvg.html");
-        writeToHtmlFile(getHTML(sortEditDate(completeList)), "newest.html");
-        writeToHtmlFile(getHTML(errorsList), "errors.html");
-
-
-        writeToCsvFile(sortAvgPrice(verifiedHouseList), "avgPrice.csv");
-        writeToCsvFile(errorsList, "errors.csv");
-        writeToCsvFile(getHousesBelowAveragePrice(verifiedHouseList), "belowAvg.csv");
-        writeToCsvFile(sortEditDate(completeList), "newest.csv");
+//        writeToHtmlFile(getHTML(sortAvgPrice(verifiedHouseList)), "avgPrice.html");
+//        writeToHtmlFile(getHTML(getHousesBelowAveragePrice(verifiedHouseList)), "belowAvg.html");
+//        writeToHtmlFile(getHTML(sortEditDate(completeList)), "newest.html");
+//        writeToHtmlFile(getHTML(errorsList), "errors.html");
+//
+//
+//        writeToCsvFile(sortAvgPrice(verifiedHouseList), "avgPrice.csv");
+//        writeToCsvFile(errorsList, "errors.csv");
+//        writeToCsvFile(getHousesBelowAveragePrice(verifiedHouseList), "belowAvg.csv");
+//        writeToCsvFile(sortEditDate(completeList), "newest.csv");
+        return sortEditDate(completeList);
     }
 
-    private static List<House> getHousesBelowAveragePrice(List<House> houseList)  {
+    private List<House> getHousesBelowAveragePrice(List<House> houseList) {
         Double averageGlobalPrice = houseList.stream()
                 .filter(house -> house.getAvgMeterPrice() != null)
                 .collect(Collectors.averagingDouble(House::getAvgMeterPrice));
@@ -143,20 +150,20 @@ public class Parser {
                 .collect(Collectors.toList());
     }
 
-    private static List<House> sortAvgPrice(List<House> houseList) {
+    private List<House> sortAvgPrice(List<House> houseList) {
         return houseList.stream()
                 .filter(house -> house.getAvgMeterPrice() != null)
                 .sorted(Comparator.comparing(House::getAvgMeterPrice))
                 .collect(Collectors.toList());
     }
 
-    private static List<House> sortEditDate(List<House> houseList) {
+    private List<House> sortEditDate(List<House> houseList) {
         return houseList.stream()
                 .sorted((house1, house2) -> house2.getEditDateAsLocalDate().compareTo(house1.getEditDateAsLocalDate()))
                 .collect(Collectors.toList());
     }
 
-    private static File[] setupDataSource() throws IOException {
+    private File[] setupDataSource() throws IOException {
         Files.createDirectories(Paths.get(ERROR_DIR));
         Files.createDirectories(Paths.get(DATA_DIR));
         Files.createDirectories(Paths.get(JSON_DIR));
@@ -164,16 +171,16 @@ public class Parser {
         return folder.listFiles();
     }
 
-    private static boolean isHouseNotPersisted(File[] listOfFiles, House house) {
+    private boolean isHouseNotPersisted(File[] listOfFiles, House house) {
         return listOfFiles != null && Stream.of(listOfFiles)
                 .noneMatch(file -> compareHashcodes(house, file));
     }
 
-    private static boolean compareHashcodes(House house, File file) {
+    private boolean compareHashcodes(House house, File file) {
         return Integer.parseInt(file.getName().substring(0, file.getName().lastIndexOf("."))) == house.hashCode();
     }
 
-    private static void writeToCsvFile(List<House> houseList, String filename) {
+    private void writeToCsvFile(List<House> houseList, String filename) {
         try {
             FileOutputStream fos = new FileOutputStream(DATA_DIR + filename, false);
 
@@ -185,7 +192,7 @@ public class Parser {
         }
     }
 
-    private static void writeToHtmlFile(String content, String filename) {
+    private void writeToHtmlFile(String content, String filename) {
         try {
             FileOutputStream fos = new FileOutputStream(DATA_DIR + filename, false);
 
@@ -197,13 +204,13 @@ public class Parser {
         }
     }
 
-    private static String getStringFromList(List<House> houseList) {
+    private String getStringFromList(List<House> houseList) {
         StringBuilder sb = new StringBuilder(CSV_COLS);
         houseList.forEach(house -> sb.append(house.toString().replace(";null;", ";;")));
         return sb.toString();
     }
 
-    private static House parseEntry(Element entry, Set<String> linksSet, Set<String> errorLinksSet) throws IllegalArgumentException, IOException {
+    private House parseEntry(Element entry, Set<String> linksSet, Set<String> errorLinksSet) throws IllegalArgumentException, IOException {
         House house = new House();
         Element imageSection = entry.getElementsByClass("image-section").first();
         house.setLink(MAIN_URL + imageSection.selectFirst("a").attributes().get("href"));
@@ -225,7 +232,7 @@ public class Parser {
         return house;
     }
 
-    private static void parseDetails(House house) throws IOException {
+    private void parseDetails(House house) throws IOException {
         if (house == null || house.getLink() == null) {
             throw new IllegalArgumentException("House link is null");
         }
@@ -257,7 +264,7 @@ public class Parser {
 
         attributeGroup.forEach(element -> processAttributeElement(element, house));
 
-        String price = doc.getElementsByAttributeValue("data-testid", "contact-box-price-box-price-value").html().replaceAll("[^0-9,]", "").replaceAll(" ","");
+        String price = doc.getElementsByAttributeValue("data-testid", "contact-box-price-box-price-value").html().replaceAll("[^0-9,]", "").replaceAll(" ", "");
         house.setPrice(price);
 
         Element priceInfoSection = doc
@@ -277,7 +284,7 @@ public class Parser {
         house.setEditDate(editDate);
     }
 
-    private static void processAttributeElement(Element element, House house) {
+    private void processAttributeElement(Element element, House house) {
         String attributeName = element.getElementsByAttributeValue("data-testid", "attribute-name").first().child(0).html();
         String attributeValue = element.getElementsByAttributeValue("data-testid", "attribute-value").first().html();
 
@@ -312,56 +319,9 @@ public class Parser {
         }
     }
 
-    private static boolean isVerified(House house) {
-        return isNotEmpty(house.getPrice()) && isNumber(house.getPrice()) && !house.getPrice().equals("1") &&
-                isNotEmpty(house.getSize()) && isNumber(house.getSize()) &&
-                isNotEmpty(house.getEditDate()) && isDate(house.getEditDate()) &&
-                isNotEmpty(house.getLink()) && isLink(house.getLink()) &&
-                isNotEmpty(house.getPictureLink()) && isLink(house.getPictureLink()) &&
-                isNotEmpty(house.getLocation());
-    }
 
-    private static boolean isNotEmpty(String str) {
-        boolean result = str != null && !str.isEmpty();
-        if (!result) {
-            System.out.println("Empty string");
-        }
-        return result;
-    }
-
-    private static boolean isLink(String str) {
-        boolean result = str.startsWith("http://") || str.startsWith("https://");
-        if (!result) {
-            System.out.println("Not a link: " + str);
-        }
-        return result;
-    }
-
-    private static boolean isNumber(String str) {
-        String toValidate = str.replaceAll("[,. ]", "");
-        char[] chars = toValidate.toCharArray();
-        for (char aChar : chars) {
-            if (!Character.isDigit(aChar)) {
-                System.out.println("Not a number: " + str);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean isDate(String str) {
-        String[] parsedDate = str.split(Pattern.quote("."));
-        boolean result = parsedDate.length == 3 &&
-                isNumber(parsedDate[0]) &&
-                isNumber(parsedDate[1]) &&
-                isNumber(parsedDate[2]);
-        if (!result) {
-            System.out.println("Not a date: " + str);
-        }
-        return result;
-    }
-
-    private static String getHTML(List<House> houseList) {
+    public String getHTML() throws IOException {
+        List<House> houseList = fetchData();
         StringBuilder stringBuilder = new StringBuilder("<table style=\"width:100%\"><tr>" +
                 "<th width=\"200\">Photo</th>" +
                 "<th width=\"40\">Size</th>" +
@@ -376,14 +336,14 @@ public class Parser {
                 "<th width=\"150\">Additional info</th>" +
                 "</tr>");
         houseList.stream()
-                .map(Parser::getHTMLforHouse)
+                .map(this::getHTMLforHouse)
                 .forEach(stringBuilder::append);
 
         stringBuilder.append("</table>");
         return stringBuilder.toString();
     }
 
-    private static String getHTMLforHouse(House house) {
+    private String getHTMLforHouse(House house) {
         return "<tr>" +
                 "<td><center><a href=\"" + Optional.ofNullable(house.getLink()).orElse("-") + "\">" +
                 "<img src=\"" + Optional.ofNullable(house.getPictureLink()).orElse("-") + "\"width=\"200\"/>" +
