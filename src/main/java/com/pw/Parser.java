@@ -11,9 +11,7 @@ import org.jsoup.select.Elements;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,8 +26,6 @@ public class Parser {
     private static final String JSON_DIR = DATA_DIR + "json" + File.separator + AREA_CODE + File.separator;
     private static final String ERROR_DIR = DATA_DIR + "errors" + File.separator;
 
-    private static final boolean DEBUG = true;
-
     public static void main(String[] args) throws IOException {
         Document doc = Jsoup.connect(BUY_HOUSE_URL).get();
         Element resultList = doc.getElementById("resultlist");
@@ -39,10 +35,10 @@ public class Parser {
         int counter = 2;
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        ArrayList<House> verifiedHouseList = new ArrayList<>();
-        ArrayList<House> errorsList = new ArrayList<>();
-        HashSet<String> linksSet = new HashSet<>();
-        HashSet<String> errorLinksSet = new HashSet<>();
+        List<House> verifiedHouseList = new ArrayList<>();
+        List<House> errorsList = new ArrayList<>();
+        Set<String> linksSet = new HashSet<>();
+        Set<String> errorLinksSet = new HashSet<>();
         File[] listOfFiles = setupDataSource();
         if (listOfFiles.length > 0) {
             for (File file : listOfFiles) {
@@ -79,7 +75,7 @@ public class Parser {
                             System.out.println("Persisting house");
                             verifiedHouseList.add(house);
                             objectMapper.writeValue(new File(JSON_DIR + house.hashCode() + ".json"), house);
-                        } else if (DEBUG) {
+                        } else {
                             errorsList.add(house);
                             objectMapper.writeValue(new File(ERROR_DIR + house.hashCode() + ".json"), house);
                         }
@@ -95,18 +91,47 @@ public class Parser {
         } catch (IOException e) {
             System.out.println(e.getLocalizedMessage());
         }
-        writeToCsvFile(verifiedHouseList);
 
-        if (DEBUG) {
-            writeToCsvFile(errorsList, true);
-        }
+        writeToHtmlFile(getHTML(sortAvgPrice(verifiedHouseList)), "output.html");
+        writeToHtmlFile(getHTML(getHousesBelowAveragePrice(verifiedHouseList)), "belowAvg.html");
+        writeToHtmlFile(getHTML(sortEditDate(verifiedHouseList)), "newest.html");
+
+
+        writeToCsvFile(sortAvgPrice(verifiedHouseList), "output.csv");
+        writeToCsvFile(errorsList, "errors.csv");
+        writeToCsvFile(getHousesBelowAveragePrice(verifiedHouseList), "belowAvg.csv");
+        writeToCsvFile(sortEditDate(verifiedHouseList), "newest.csv");
 
     }
 
+    private static List<House> getHousesBelowAveragePrice(List<House> houseList) throws IllegalArgumentException {
+        Double averageGlobalPrice = houseList.stream()
+                .map(House::getAvgMeterPrice)
+                .filter(Objects::nonNull)
+                .reduce((price1, price2) -> (price1 + price2)/2)
+                .orElseThrow(() -> new IllegalArgumentException("Unable to calculate average price"));
+
+        System.out.println("Average price: " + averageGlobalPrice);
+
+        return sortAvgPrice(houseList).stream()
+                .filter(house -> house.getAvgMeterPrice() < averageGlobalPrice)
+                .collect(Collectors.toList());
+    }
+
+    private static List<House> sortAvgPrice(List<House> houseList) {
+        return houseList.stream()
+                .sorted(Comparator.comparing(House::getAvgMeterPrice))
+                .collect(Collectors.toList());
+    }
+
+    private static List<House> sortEditDate(List<House> houseList) {
+        return houseList.stream()
+                .sorted((house1, house2) -> house2.getEditDateAsLocalDate().compareTo(house1.getEditDateAsLocalDate()))
+                .collect(Collectors.toList());
+    }
+
     private static File[] setupDataSource() throws IOException {
-        if (DEBUG) {
-            Files.createDirectories(Paths.get(ERROR_DIR));
-        }
+        Files.createDirectories(Paths.get(ERROR_DIR));
         Files.createDirectories(Paths.get(DATA_DIR));
         Files.createDirectories(Paths.get(JSON_DIR));
         File folder = new File(JSON_DIR);
@@ -122,20 +147,24 @@ public class Parser {
         return Integer.parseInt(file.getName().substring(0, file.getName().lastIndexOf("."))) == house.hashCode();
     }
 
-    private static void writeToCsvFile(List<House> houseList) {
-        writeToCsvFile(houseList, false);
-    }
-
-    private static void writeToCsvFile(List<House> houseList, boolean writeErrors) {
+    private static void writeToCsvFile(List<House> houseList, String filename) {
         try {
-            FileOutputStream fos;
-            if (writeErrors) {
-                fos = new FileOutputStream(DATA_DIR + "errors.csv", false);
-            } else {
-                fos = new FileOutputStream(DATA_DIR + "output.csv", false);
-            }
+            FileOutputStream fos = new FileOutputStream(DATA_DIR + filename, false);
+
             DataOutputStream outStream = new DataOutputStream(new BufferedOutputStream(fos));
             outStream.writeChars(getStringFromList(houseList));
+            outStream.close();
+        } catch (IOException e) {
+            System.out.println(e.getLocalizedMessage());
+        }
+    }
+
+    private static void writeToHtmlFile(String content, String filename) {
+        try {
+            FileOutputStream fos = new FileOutputStream(DATA_DIR + filename, false);
+
+            DataOutputStream outStream = new DataOutputStream(new BufferedOutputStream(fos));
+            outStream.writeChars(content);
             outStream.close();
         } catch (IOException e) {
             System.out.println(e.getLocalizedMessage());
@@ -148,7 +177,7 @@ public class Parser {
         return sb.toString();
     }
 
-    private static House parseEntry(Element entry, HashSet<String> linksSet, HashSet<String> errorLinksSet) throws IllegalArgumentException, IOException {
+    private static House parseEntry(Element entry, Set<String> linksSet, Set<String> errorLinksSet) throws IllegalArgumentException, IOException {
         House house = new House();
         Element imageSection = entry.getElementsByClass("image-section").first();
         house.setLink(MAIN_URL + imageSection.selectFirst("a").attributes().get("href"));
@@ -263,7 +292,7 @@ public class Parser {
                 isNotEmpty(house.getArea()) && isNumber(house.getArea()) &&
                 isNotEmpty(house.getLocation()) &&
                 isNotEmpty(house.getEditDate()) && isDate(house.getEditDate()) &&
-                isNotEmpty(house.getPrice()) && isNumber(house.getPrice());
+                isNotEmpty(house.getPrice()) && isNumber(house.getPrice()) && !house.getPrice().equals("1");
     }
 
     private static boolean isNotEmpty(String str) {
@@ -304,5 +333,45 @@ public class Parser {
             System.out.println("Not a date: " + str);
         }
         return result;
+    }
+
+    private static String getHTML(List<House> houseList) {
+        StringBuilder stringBuilder = new StringBuilder("<table style=\"width:100%\"><tr>" +
+                "<th>Photo</th>" +
+                "<th>Area</th>" +
+                "<th>Rooms</th>" +
+                "<th>Ground Area</th>" +
+                "<th>Price</th>" +
+                "<th>Location</th>" +
+                "<th>Object Type</th>" +
+                "<th>Heating Type</th>" +
+                "<th>Object state</th>" +
+                "<th>Object age</th>" +
+                "<th>Additional info</th>" +
+                "</tr>");
+        houseList.stream()
+                .map(Parser::getHTMLforHouse)
+                .forEach(stringBuilder::append);
+
+        stringBuilder.append("</table>");
+        return stringBuilder.toString();
+    }
+
+    private static String getHTMLforHouse(House house) {
+        return "<tr>" +
+                "<td><a href=\"" + house.getLink() + "\">" +
+                "<img src=\"" + house.getPictureLink() + "\"width=\"200\"/>" +
+                "</a></td>" +
+                "<td>" + house.getArea() + " m2</td>" +
+                "<td>" + house.getRooms() + " rooms</td>" +
+                "<td>" + house.getGroundArea() + " m2</td>" +
+                "<td>" + house.getPrice() + " EUR (" + house.getAvgMeterPriceStr() + "/m2)</td>" +
+                "<td>" + house.getLocation() + "</td>" +
+                "<td>" + house.getObjectType() + "</td>" +
+                "<td>" + house.getWarmType() + "</td>" +
+                "<td>" + house.getState() + "</td>" +
+                "<td>" + house.getBuildTime() + "</td>" +
+                "<td>" + house.getInfo() + "</td>" +
+                "</tr>";
     }
 }

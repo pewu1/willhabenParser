@@ -2,6 +2,8 @@ package com.pw.model;
 
 import java.io.Serializable;
 import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -155,19 +157,38 @@ public class House implements Serializable {
         this.transactionFee = transactionFee;
     }
 
-    private String getAvgMeterPrice() {
+    public Double getAvgMeterPrice() {
         if (this.price == null || this.area == null) {
             return null;
         }
         try {
             double priceVal = Double.parseDouble(this.price);
             double areaVal = Double.parseDouble(this.area);
-            double avgPrice = (priceVal / areaVal);
+            return (priceVal / areaVal);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    public String getAvgMeterPriceStr() {
+        Double avgPrice = getAvgMeterPrice();
+
+        if (avgPrice == null) {
+            return null;
+        }
+        try {
             DecimalFormat df = new DecimalFormat("#.##");
             return df.format(avgPrice).replaceAll(Pattern.quote("."), ",");
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    public LocalDate getEditDateAsLocalDate() {
+        if (this.getEditDate() == null || this.getEditDate().isEmpty()) {
+            return null;
+        }
+        return LocalDate.parse(this.getEditDate(), DateTimeFormatter.ofPattern("dd.MM.yyyy"));
     }
 
     @Override
@@ -176,7 +197,7 @@ public class House implements Serializable {
                 Optional.ofNullable(location).orElse("") + ";" +
                 Optional.ofNullable(price).orElse("") + ";" +
                 Optional.ofNullable(area).orElse("") + ";" +
-                Optional.ofNullable(getAvgMeterPrice()).orElse("") + ";" +
+                Optional.ofNullable(getAvgMeterPriceStr()).orElse("") + ";" +
                 Optional.ofNullable(groundArea).orElse("") + ";" +
                 Optional.ofNullable(rooms).orElse("") + ";" +
                 Optional.ofNullable(objectType).orElse("") + ";" +
