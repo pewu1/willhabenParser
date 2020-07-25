@@ -19,12 +19,14 @@ import java.util.stream.Stream;
 public class Parser {
 
     private static final int AREA_CODE = 4;
-    private static final String CSV_COLS = "editDate;location;price;area;avgPrice;groundArea;rooms;objectType;buildTime;state;warmType;info;transactionFee;link;pictureLink;hashCode\r\n";
+    private static final String CSV_COLS = "editDate;postalCode;location;district;state;price;size;avgPrice;groundArea;rooms;objectType;age;condition;heatingType;info;transactionFee;link;pictureLink;hashCode\r\n";
     private static final String MAIN_URL = "https://www.willhaben.at";
     private static final String BUY_HOUSE_URL = MAIN_URL + "/iad/immobilien/haus-kaufen/haus-angebote?rows=100&areaId=" + AREA_CODE;
     private static final String DATA_DIR = "D:/parserData/";
     private static final String JSON_DIR = DATA_DIR + "json" + File.separator + AREA_CODE + File.separator;
     private static final String ERROR_DIR = DATA_DIR + "errors" + File.separator;
+    public static final String DECIMAL_FORMAT = "###,###.##";
+
 
     public static void main(String[] args) throws IOException {
         Document doc = Jsoup.connect(BUY_HOUSE_URL).get();
@@ -43,6 +45,11 @@ public class Parser {
         if (listOfFiles.length > 0) {
             for (File file : listOfFiles) {
                 House house = objectMapper.readValue(file, House.class);
+                if (!file.getName().contains(String.valueOf(house.hashCode()))) {
+                    System.out.println("Updating file");
+                    objectMapper.writeValue(new File(JSON_DIR + house.hashCode() + ".json"), house);
+                    Files.delete(file.toPath());
+                }
                 verifiedHouseList.add(house);
                 linksSet.add(house.getLink());
                 linksSet.add(house.getPictureLink());
@@ -53,9 +60,25 @@ public class Parser {
         if (listOfErrorFiles != null && listOfErrorFiles.length > 0) {
             for (File file : listOfErrorFiles) {
                 House house = objectMapper.readValue(file, House.class);
-                errorsList.add(house);
-                if (house.getLink() != null && !house.getLink().isEmpty()) {
-                    errorLinksSet.add(house.getLink());
+                if (isVerified(house)) {
+                    System.out.println("Found correct house in error files");
+                    if (!verifiedHouseList.contains(house)) {
+                        verifiedHouseList.add(house);
+                        objectMapper.writeValue(new File(JSON_DIR + house.hashCode() + ".json"), house);
+                    }
+                    Files.delete(file.toPath());
+                } else {
+                    if (!file.getName().contains(String.valueOf(house.hashCode()))) {
+                        objectMapper.writeValue(new File(ERROR_DIR + house.hashCode() + ".json"), house);
+                        Files.delete(file.toPath());
+                    }
+                    errorsList.add(house);
+                    if (house.getLink() != null && !house.getLink().isEmpty()) {
+                        errorLinksSet.add(house.getLink());
+                    }
+                    if (house.getPictureLink() != null && !house.getPictureLink().isEmpty()) {
+                        errorLinksSet.add(house.getPictureLink());
+                    }
                 }
             }
         }
@@ -92,16 +115,20 @@ public class Parser {
             System.out.println(e.getLocalizedMessage());
         }
 
-        writeToHtmlFile(getHTML(sortAvgPrice(verifiedHouseList)), "output.html");
+        List<House> completeList = new ArrayList<>();
+        completeList.addAll(verifiedHouseList);
+        completeList.addAll(errorsList);
+
+        writeToHtmlFile(getHTML(sortAvgPrice(verifiedHouseList)), "avgPrice.html");
         writeToHtmlFile(getHTML(getHousesBelowAveragePrice(verifiedHouseList)), "belowAvg.html");
-        writeToHtmlFile(getHTML(sortEditDate(verifiedHouseList)), "newest.html");
+        writeToHtmlFile(getHTML(sortEditDate(completeList)), "newest.html");
+        writeToHtmlFile(getHTML(errorsList), "errors.html");
 
 
-        writeToCsvFile(sortAvgPrice(verifiedHouseList), "output.csv");
+        writeToCsvFile(sortAvgPrice(verifiedHouseList), "avgPrice.csv");
         writeToCsvFile(errorsList, "errors.csv");
         writeToCsvFile(getHousesBelowAveragePrice(verifiedHouseList), "belowAvg.csv");
-        writeToCsvFile(sortEditDate(verifiedHouseList), "newest.csv");
-
+        writeToCsvFile(sortEditDate(completeList), "newest.csv");
     }
 
     private static List<House> getHousesBelowAveragePrice(List<House> houseList)  {
@@ -118,6 +145,7 @@ public class Parser {
 
     private static List<House> sortAvgPrice(List<House> houseList) {
         return houseList.stream()
+                .filter(house -> house.getAvgMeterPrice() != null)
                 .sorted(Comparator.comparing(House::getAvgMeterPrice))
                 .collect(Collectors.toList());
     }
@@ -182,10 +210,10 @@ public class Parser {
         if (house.getLink().contains("andere-laender")) {
             throw new IllegalArgumentException("House is abroad");
         }
-        if (errorLinksSet.contains(house.getLink())) {
+        house.setPictureLink(imageSection.selectFirst("img").attributes().get("src"));
+        if (errorLinksSet.contains(house.getLink()) && errorLinksSet.contains(house.getPictureLink())) {
             throw new IllegalArgumentException("House is already marked as error");
         }
-        house.setPictureLink(imageSection.selectFirst("img").attributes().get("src"));
         int linksNumber = linksSet.size();
         linksSet.add(house.getLink());
         linksSet.add(house.getPictureLink());
@@ -220,7 +248,7 @@ public class Parser {
                 .getElementsByAttributeValue("data-testid", "object-location-address")
                 .first()
                 .html();
-        house.setLocation(location.replaceAll(";", "").replaceAll("amp", ""));
+        house.setLocation(location.replaceAll("&amp;", "&"));
 
         Elements attributeGroup = detailsSection
                 .getElementsByAttributeValue("data-testid", "attribute-group")
@@ -229,7 +257,7 @@ public class Parser {
 
         attributeGroup.forEach(element -> processAttributeElement(element, house));
 
-        String price = doc.getElementsByAttributeValue("data-testid", "contact-box-price-box-price-value").html().replaceAll("[^0-9,]", "");
+        String price = doc.getElementsByAttributeValue("data-testid", "contact-box-price-box-price-value").html().replaceAll("[^0-9,]", "").replaceAll(" ","");
         house.setPrice(price);
 
         Element priceInfoSection = doc
@@ -241,7 +269,7 @@ public class Parser {
             transactionFee = priceInfoSection
                     .getElementsByAttributeValue("data-testid", "price-information-freetext-attribute-value-0")
                     .html()
-                    .replaceAll(";", "");
+                    .replaceAll("&nbsp;", " ");
         }
         house.setTransactionFee(transactionFee);
 
@@ -258,19 +286,19 @@ public class Parser {
                 house.setObjectType(attributeValue);
                 break;
             case "Bautyp":
-                house.setBuildTime(attributeValue);
+                house.setAge(attributeValue);
                 break;
             case "Zustand":
-                house.setState(attributeValue);
+                house.setCondition(attributeValue);
                 break;
             case "Wohnfläche":
-                house.setArea(attributeValue.replaceAll("[^0-9,]", ""));
+                house.setSize(attributeValue.replaceAll("[^0-9,]", ""));
                 break;
             case "Zimmer":
                 house.setRooms(attributeValue);
                 break;
             case "Heizung":
-                house.setWarmType(attributeValue);
+                house.setHeatingType(attributeValue);
                 break;
             case "Grundfläche":
                 house.setGroundArea(attributeValue.replaceAll("[^0-9,]", ""));
@@ -285,12 +313,12 @@ public class Parser {
     }
 
     private static boolean isVerified(House house) {
-        return isNotEmpty(house.getLink()) && isLink(house.getLink()) &&
-                isNotEmpty(house.getPictureLink()) && isLink(house.getPictureLink()) &&
-                isNotEmpty(house.getArea()) && isNumber(house.getArea()) &&
-                isNotEmpty(house.getLocation()) &&
+        return isNotEmpty(house.getPrice()) && isNumber(house.getPrice()) && !house.getPrice().equals("1") &&
+                isNotEmpty(house.getSize()) && isNumber(house.getSize()) &&
                 isNotEmpty(house.getEditDate()) && isDate(house.getEditDate()) &&
-                isNotEmpty(house.getPrice()) && isNumber(house.getPrice()) && !house.getPrice().equals("1");
+                isNotEmpty(house.getLink()) && isLink(house.getLink()) &&
+                isNotEmpty(house.getPictureLink()) && isLink(house.getPictureLink()) &&
+                isNotEmpty(house.getLocation());
     }
 
     private static boolean isNotEmpty(String str) {
@@ -310,15 +338,15 @@ public class Parser {
     }
 
     private static boolean isNumber(String str) {
-        if (str.startsWith("0")) {
-            str = str.replace("0", "");
+        String toValidate = str.replaceAll("[,. ]", "");
+        char[] chars = toValidate.toCharArray();
+        for (char aChar : chars) {
+            if (!Character.isDigit(aChar)) {
+                System.out.println("Not a number: " + str);
+                return false;
+            }
         }
-        int value = Integer.parseInt(str);
-        boolean result = str.equals(String.valueOf(value));
-        if (!result) {
-            System.out.println("Not a number: " + str);
-        }
-        return result;
+        return true;
     }
 
     private static boolean isDate(String str) {
@@ -335,17 +363,17 @@ public class Parser {
 
     private static String getHTML(List<House> houseList) {
         StringBuilder stringBuilder = new StringBuilder("<table style=\"width:100%\"><tr>" +
-                "<th>Photo</th>" +
-                "<th>Area</th>" +
+                "<th width=\"200\">Photo</th>" +
+                "<th width=\"40\">Size</th>" +
                 "<th>Rooms</th>" +
-                "<th>Ground Area</th>" +
-                "<th>Price</th>" +
-                "<th>Location</th>" +
-                "<th>Object Type</th>" +
-                "<th>Heating Type</th>" +
-                "<th>Object state</th>" +
-                "<th>Object age</th>" +
-                "<th>Additional info</th>" +
+                "<th width=\"40\">Ground</th>" +
+                "<th width=\"100\">Price</th>" +
+                "<th width=\"200\">Location</th>" +
+                "<th>Type</th>" +
+                "<th>Heating</th>" +
+                "<th>Condition</th>" +
+                "<th>Age</th>" +
+                "<th width=\"150\">Additional info</th>" +
                 "</tr>");
         houseList.stream()
                 .map(Parser::getHTMLforHouse)
@@ -357,19 +385,22 @@ public class Parser {
 
     private static String getHTMLforHouse(House house) {
         return "<tr>" +
-                "<td><a href=\"" + house.getLink() + "\">" +
-                "<img src=\"" + house.getPictureLink() + "\"width=\"200\"/>" +
-                "</a></td>" +
-                "<td>" + house.getArea() + " m2</td>" +
-                "<td>" + house.getRooms() + " rooms</td>" +
-                "<td>" + house.getGroundArea() + " m2</td>" +
-                "<td>" + house.getPrice() + " EUR (" + house.getAvgMeterPriceStr() + "/m2)</td>" +
-                "<td>" + house.getLocation() + "</td>" +
-                "<td>" + house.getObjectType() + "</td>" +
-                "<td>" + house.getWarmType() + "</td>" +
-                "<td>" + house.getState() + "</td>" +
-                "<td>" + house.getBuildTime() + "</td>" +
-                "<td>" + house.getInfo() + "</td>" +
+                "<td><center><a href=\"" + Optional.ofNullable(house.getLink()).orElse("-") + "\">" +
+                "<img src=\"" + Optional.ofNullable(house.getPictureLink()).orElse("-") + "\"width=\"200\"/>" +
+                "</a></center></td>" +
+                "<td><center>" + Optional.ofNullable(house.getSize()).orElse("-") + " m2</center></td>" +
+                "<td><center>" + Optional.ofNullable(house.getRooms()).orElse("-") + "</center></td>" +
+                "<td><center>" + Optional.ofNullable(house.getGroundArea()).orElse("-") + " m2</center></td>" +
+                "<td><center>" + Optional.ofNullable(house.getFormattedPrice()).orElse("-") + " EUR<br>(" +
+                Optional.ofNullable(house.getAvgMeterPriceStr()).orElse("-") + "/m2)</center></td>" +
+                "<td><center>" + Optional.ofNullable(house.getLocation()).orElse("-") + "</center></td>" +
+                "<td><center>" + Optional.ofNullable(house.getObjectType()).orElse("-") + "</center></td>" +
+                "<td><center>" + Optional.ofNullable(house.getHeatingType()).orElse("-") + "</center></td>" +
+                "<td><center>" + Optional.ofNullable(house.getCondition()).orElse("-") + "</center></td>" +
+                "<td><center>" + Optional.ofNullable(house.getAge()).orElse("-") + "</center></td>" +
+                "<td><center>" + Optional.ofNullable(house.getInfo()).orElse("-") + "</center></td>" +
                 "</tr>";
     }
+
+
 }

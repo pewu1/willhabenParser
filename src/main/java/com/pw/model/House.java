@@ -1,44 +1,52 @@
 package com.pw.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.io.Serializable;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
+import static com.pw.Parser.DECIMAL_FORMAT;
 
 public class House implements Serializable {
+
+
     String price;
     String location;
     String link;
-    String area;
+    String size;
     String pictureLink;
     String rooms;
-    String agent;
     String info;
     String objectType;
-    String buildTime;
-    String state;
+    String age;
+    String condition;
     String groundArea;
-    String warmType;
+    String heatingType;
     String editDate;
     String transactionFee;
-
 
     public House() {
     }
 
-    public House(String price, String location, String link, String area, String pictureLink) {
-        this.price = price;
-        this.location = location;
-        this.link = link;
-        this.area = area;
-        this.pictureLink = pictureLink;
-    }
-
     public String getPrice() {
         return price;
+    }
+
+    @JsonIgnore
+    public String getFormattedPrice() {
+        if (this.price != null && !this.price.isEmpty()) {
+            Double priceVal = Double.parseDouble(this.price);
+            return getFormattedString(priceVal);
+        } else {
+            return this.price;
+        }
     }
 
     public void setPrice(String price) {
@@ -61,12 +69,12 @@ public class House implements Serializable {
         this.link = link;
     }
 
-    public String getArea() {
-        return area;
+    public String getSize() {
+        return size;
     }
 
-    public void setArea(String area) {
-        this.area = area;
+    public void setSize(String size) {
+        this.size = size;
     }
 
     public String getPictureLink() {
@@ -85,14 +93,6 @@ public class House implements Serializable {
         this.rooms = rooms;
     }
 
-    public String getAgent() {
-        return agent;
-    }
-
-    public void setAgent(String agent) {
-        this.agent = agent;
-    }
-
     public String getInfo() {
         return info;
     }
@@ -109,20 +109,20 @@ public class House implements Serializable {
         this.objectType = objectType;
     }
 
-    public String getBuildTime() {
-        return buildTime;
+    public String getAge() {
+        return age;
     }
 
-    public void setBuildTime(String buildTime) {
-        this.buildTime = buildTime;
+    public void setAge(String age) {
+        this.age = age;
     }
 
-    public String getState() {
-        return state;
+    public String getCondition() {
+        return condition;
     }
 
-    public void setState(String state) {
-        this.state = state;
+    public void setCondition(String condition) {
+        this.condition = condition;
     }
 
     public String getGroundArea() {
@@ -133,12 +133,12 @@ public class House implements Serializable {
         this.groundArea = groundArea;
     }
 
-    public String getWarmType() {
-        return warmType;
+    public String getHeatingType() {
+        return heatingType;
     }
 
-    public void setWarmType(String warmType) {
-        this.warmType = warmType;
+    public void setHeatingType(String heatingType) {
+        this.heatingType = heatingType;
     }
 
     public String getEditDate() {
@@ -157,19 +157,21 @@ public class House implements Serializable {
         this.transactionFee = transactionFee;
     }
 
+    @JsonIgnore
     public Double getAvgMeterPrice() {
-        if (this.price == null || this.area == null) {
+        if (this.price == null || this.size == null) {
             return null;
         }
         try {
             double priceVal = Double.parseDouble(this.price);
-            double areaVal = Double.parseDouble(this.area);
+            double areaVal = Double.parseDouble(this.size);
             return (priceVal / areaVal);
         } catch (NumberFormatException e) {
             return null;
         }
     }
 
+    @JsonIgnore
     public String getAvgMeterPriceStr() {
         Double avgPrice = getAvgMeterPrice();
 
@@ -177,13 +179,13 @@ public class House implements Serializable {
             return null;
         }
         try {
-            DecimalFormat df = new DecimalFormat("#.##");
-            return df.format(avgPrice).replaceAll(Pattern.quote("."), ",");
+            return getFormattedString(avgPrice);
         } catch (NumberFormatException e) {
             return null;
         }
     }
 
+    @JsonIgnore
     public LocalDate getEditDateAsLocalDate() {
         if (this.getEditDate() == null || this.getEditDate().isEmpty()) {
             return null;
@@ -194,16 +196,19 @@ public class House implements Serializable {
     @Override
     public String toString() {
         return Optional.ofNullable(editDate).orElse("") + ";" +
-                Optional.ofNullable(location).orElse("") + ";" +
+                Optional.ofNullable(getPostalCode()).orElse("") + ";" +
+                Optional.of(getLocationName()).orElse("") + ";" +
+                Optional.of(getDistrictName()).orElse("") + ";" +
+                Optional.of(getStateName()).orElse("") + ";" +
                 Optional.ofNullable(price).orElse("") + ";" +
-                Optional.ofNullable(area).orElse("") + ";" +
+                Optional.ofNullable(size).orElse("") + ";" +
                 Optional.ofNullable(getAvgMeterPriceStr()).orElse("") + ";" +
                 Optional.ofNullable(groundArea).orElse("") + ";" +
                 Optional.ofNullable(rooms).orElse("") + ";" +
                 Optional.ofNullable(objectType).orElse("") + ";" +
-                Optional.ofNullable(buildTime).orElse("") + ";" +
-                Optional.ofNullable(state).orElse("") + ";" +
-                Optional.ofNullable(warmType).orElse("") + ";" +
+                Optional.ofNullable(age).orElse("") + ";" +
+                Optional.ofNullable(condition).orElse("") + ";" +
+                Optional.ofNullable(heatingType).orElse("") + ";" +
                 Optional.ofNullable(info).orElse("") + ";" +
                 Optional.ofNullable(getTransactionFee()).orElse("") + ";" +
                 Optional.ofNullable(link).orElse("") + ";" +
@@ -219,18 +224,86 @@ public class House implements Serializable {
         House house = (House) o;
         return Objects.equals(price, house.price) &&
                 Objects.equals(location, house.location) &&
-                Objects.equals(area, house.area) &&
+                Objects.equals(size, house.size) &&
                 Objects.equals(rooms, house.rooms) &&
                 Objects.equals(objectType, house.objectType) &&
-                Objects.equals(buildTime, house.buildTime) &&
-                Objects.equals(state, house.state) &&
+                Objects.equals(age, house.age) &&
+                Objects.equals(condition, house.condition) &&
                 Objects.equals(groundArea, house.groundArea) &&
-                Objects.equals(warmType, house.warmType) &&
+                Objects.equals(heatingType, house.heatingType) &&
                 editDate.equals(house.editDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(price, location, area, rooms, objectType, buildTime, state, groundArea, warmType, editDate);
+        return Objects.hash(price, location, size, rooms, objectType, age, condition, groundArea, heatingType, editDate);
+    }
+
+    @JsonIgnore
+    private String getFormattedString(Number value) {
+        DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.getDefault());
+        formatSymbols.setDecimalSeparator(',');
+        formatSymbols.setGroupingSeparator(' ');
+        DecimalFormat formatter = new DecimalFormat(DECIMAL_FORMAT, formatSymbols);
+        return formatter.format(value);
+    }
+
+    private String parsePostalCode(String location) {
+        if (location.length() < 6) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        char[] chars = location.toCharArray();
+        for (int i = 0; i < 4; i++) {
+            if (Character.isDigit(chars[i])) {
+                sb.append(chars[i]);
+            } else {
+                return null;
+            }
+        }
+        return sb.toString();
+    }
+
+    @JsonIgnore
+    private String getPostalCode() {
+        String[] locationSplitted = this.location.split(", ");
+        return Stream.of(locationSplitted)
+                .map(this::parsePostalCode)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse("");
+    }
+
+    @JsonIgnore
+    private String getLocationName() {
+        String[] locationSplitted = this.location.split(", ");
+        Optional<String> resultOpt = Stream.of(locationSplitted)
+                .filter(s -> parsePostalCode(s) != null)
+                .findFirst();
+        if (resultOpt.isEmpty()) {
+            return locationSplitted[0];
+        } else {
+            return resultOpt.get().replaceAll("[0-9]", "").trim();
+        }
+    }
+
+    @JsonIgnore
+    private String getDistrictName() {
+        String[] locationSplitted = this.location.split(", ");
+        for (int i = 0; i < locationSplitted.length; i++) {
+            if (parsePostalCode(locationSplitted[i]) != null) {
+                if (i + 3 > locationSplitted.length) {
+                    return getLocationName();
+                } else {
+                    return locationSplitted[i + 1];
+                }
+            }
+        }
+    return "";
+    }
+
+    @JsonIgnore
+    private String getStateName() {
+        return location.substring(location.lastIndexOf(", ") + 2);
     }
 }
