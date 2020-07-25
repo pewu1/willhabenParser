@@ -104,7 +104,7 @@ public class Parser {
 
     }
 
-    private static List<House> getHousesBelowAveragePrice(List<House> houseList) throws IllegalArgumentException {
+    private static List<House> getHousesBelowAveragePrice(List<House> houseList)  {
         Double averageGlobalPrice = houseList.stream()
                 .filter(house -> house.getAvgMeterPrice() != null)
                 .collect(Collectors.averagingDouble(House::getAvgMeterPrice));
