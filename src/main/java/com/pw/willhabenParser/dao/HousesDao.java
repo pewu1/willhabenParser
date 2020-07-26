@@ -67,20 +67,12 @@ public class HousesDao {
         return sortEditDate(houseList);
     }
 
-    public List<House> getVerifiedHouses() {
-        return sortEditDate(houseList.stream().filter(House::isVerified).collect(Collectors.toList()));
-    }
-
     public Set<String> getVerifiedLinks() {
         return linksSet;
     }
 
     public Set<String> getErrorLinks() {
         return errorLinksSet;
-    }
-
-    public boolean isNotPersisted(House house) {
-        return house.getId() != null;
     }
 
     public List<House> getHousesBelowAveragePrice() {
@@ -105,22 +97,19 @@ public class HousesDao {
 
     private List<House> sortEditDate(List<House> houseList) {
         return houseList.stream()
-                .sorted((house1, house2) -> house2.getEditDateAsLocalDate().compareTo(house1.getEditDateAsLocalDate()))
+                .sorted((house1, house2) -> house2.getEditLocalDateTime().compareTo(house1.getEditLocalDateTime()))
                 .collect(Collectors.toList());
     }
 
     public void persist(House house) {
-        if (isNotPersisted(house) && validationService.isVerified(house)) {
+        if (validationService.isVerified(house)) {
             System.out.println("Persisting house as verified");
             house.setVerified(true);
             getAllHouses().add(house);
-            repository.save(house);
-        } else if (isNotPersisted(house)) {
+        } else {
             System.out.println("Persisting house as error");
             house.setVerified(false);
-            repository.save(house);
         }
+        repository.save(house);
     }
-
-
 }

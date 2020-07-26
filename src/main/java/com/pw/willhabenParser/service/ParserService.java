@@ -91,8 +91,9 @@ public class ParserService {
         }
         house.setTransactionFee(transactionFee);
 
-        String editDate = doc.getElementsByAttributeValue("data-testid", "ad-detail-ad-edit-date").html().split(",")[0];
-        house.setEditDate(editDate);
+        String editDateTime = doc.getElementsByAttributeValue("data-testid", "ad-detail-ad-edit-date").html();
+        house.setEditDate(editDateTime.split(", ")[0]);
+        house.setEditTime(editDateTime.split(", ")[1].substring(0, 4));
     }
 
     private void processAttributeElement(Element element, House house) {

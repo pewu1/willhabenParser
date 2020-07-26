@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Objects;
@@ -32,6 +32,7 @@ public class House implements Serializable {
     private String groundArea;
     private String heatingType;
     private String editDate;
+    private String editTime;
     private String transactionFee;
     private boolean isVerified;
 
@@ -198,6 +199,15 @@ public class House implements Serializable {
         this.transactionFee = transactionFee;
     }
 
+    @DynamoDBAttribute
+    public String getEditTime() {
+        return editTime;
+    }
+
+    public void setEditTime(String editTime) {
+        this.editTime = editTime;
+    }
+
     @JsonIgnore
     @DynamoDBIgnore
     public Double getAvgMeterPrice() {
@@ -230,13 +240,18 @@ public class House implements Serializable {
 
     @JsonIgnore
     @DynamoDBIgnore
-    public LocalDate getEditDateAsLocalDate() {
+    public LocalDateTime getEditLocalDateTime() {
         if (this.getEditDate() == null || this.getEditDate().isEmpty()) {
             return null;
         }
-        return LocalDate.parse(this.getEditDate(), DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        if (this.getEditTime() == null || this.getEditTime().isEmpty()) {
+            return LocalDateTime.parse(this.getEditDate(), DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        } else {
+            String editDateTime = this.getEditDate() + " " + this.getEditTime();
+            return LocalDateTime.parse(editDateTime, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+        }
     }
-
+    
     @Override
     public String toString() {
         return Optional.ofNullable(editDate).orElse("") + ";" +
