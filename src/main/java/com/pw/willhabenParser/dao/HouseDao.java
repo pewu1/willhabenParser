@@ -63,7 +63,7 @@ public class HouseDao {
 
     private void repairTime(House house) {
         if (house.getEditTime().length() < 5) {
-            house.setEditTime(house.getEditTime() + "0");
+            house.setEditTime(null);
             repository.save(house);
         }
     }
