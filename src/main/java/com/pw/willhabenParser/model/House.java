@@ -244,14 +244,15 @@ public class House implements Serializable {
         if (this.getEditDate() == null || this.getEditDate().isEmpty()) {
             return null;
         }
+        String editDateTime;
         if (this.getEditTime() == null || this.getEditTime().isEmpty()) {
-            return LocalDateTime.parse(this.getEditDate(), DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+            editDateTime = this.getEditDate() + " 00:00";
         } else {
-            String editDateTime = this.getEditDate() + " " + this.getEditTime();
-            return LocalDateTime.parse(editDateTime, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+            editDateTime = this.getEditDate() + " " + this.getEditTime();
         }
+        return LocalDateTime.parse(editDateTime, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
     }
-    
+
     @Override
     public String toString() {
         return Optional.ofNullable(editDate).orElse("") + ";" +
