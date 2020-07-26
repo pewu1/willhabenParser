@@ -1,6 +1,5 @@
 package com.pw.willhabenParser.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pw.willhabenParser.dao.HousesDao;
 import com.pw.willhabenParser.model.House;
 import org.jsoup.Jsoup;
@@ -20,13 +19,7 @@ public class Scheduler {
     private static final int AREA_CODE = 4;
     private static final String MAIN_URL = "https://www.willhaben.at";
     private static final String BUY_HOUSE_URL = MAIN_URL + "/iad/immobilien/haus-kaufen/haus-angebote?rows=100&areaId=" + AREA_CODE;
-
-    @Autowired
-    ValidationService validationService;
-
-    @Autowired
-    ObjectMapper objectMapper;
-
+    
     @Autowired
     HousesDao dao;
 
