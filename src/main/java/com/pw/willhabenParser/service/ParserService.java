@@ -1,6 +1,6 @@
 package com.pw.willhabenParser.service;
 
-import com.pw.willhabenParser.dao.HousesDao;
+import com.pw.willhabenParser.dao.HouseDao;
 import com.pw.willhabenParser.model.House;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -11,36 +11,42 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+import static com.pw.willhabenParser.service.ScheduledDataFetchService.MAIN_URL;
+
 @Component
 public class ParserService {
 
-    private final String MAIN_URL = "https://www.willhaben.at";
-    public static final String DECIMAL_FORMAT = "###,###.##";
-
     @Autowired
-    HousesDao dao;
-
+    HouseDao dao;
 
     public House parseEntry(Element entry) throws IllegalArgumentException, IOException {
         House house = new House();
         Element imageSection = entry.getElementsByClass("image-section").first();
         house.setLink(MAIN_URL + imageSection.selectFirst("a").attributes().get("href"));
+
         if (house.getLink().contains("andere-laender")) {
             throw new IllegalArgumentException("House is abroad");
         }
+
         house.setPictureLink(imageSection.selectFirst("img").attributes().get("src"));
+
         if (dao.getErrorLinks().contains(house.getLink()) && dao.getErrorLinks().contains(house.getPictureLink())) {
             throw new IllegalArgumentException("House is already marked as error");
         }
+
+        parseDetailsIfNotAlreadyPersisted(house);
+        return house;
+    }
+
+    private void parseDetailsIfNotAlreadyPersisted(House house) throws IOException {
         int linksNumber = dao.getVerifiedLinks().size();
         dao.getVerifiedLinks().add(house.getLink());
         dao.getVerifiedLinks().add(house.getPictureLink());
         if (linksNumber == dao.getVerifiedLinks().size() - 2) {
             parseDetails(house);
         } else {
-            throw new IllegalArgumentException("House already exists");
+            throw new IllegalArgumentException("House already persisted");
         }
-        return house;
     }
 
     private void parseDetails(House house) throws IOException {
@@ -62,11 +68,8 @@ public class ParserService {
         Element detailsSection = contentSection
                 .getElementsByAttributeValue("order", "2")
                 .first();
-        String location = detailsSection
-                .getElementsByAttributeValue("data-testid", "object-location-address")
-                .first()
-                .html();
-        house.setLocation(location.replaceAll("&amp;", "&"));
+
+        parseLocation(house, detailsSection);
 
         Elements attributeGroup = detailsSection
                 .getElementsByAttributeValue("data-testid", "attribute-group")
@@ -74,10 +77,18 @@ public class ParserService {
                 .getElementsByAttributeValue("data-testid", "attribute");
 
         attributeGroup.forEach(element -> processAttributeElement(element, house));
+        parsePrice(house, doc);
+        parseTransactionFee(house, doc);
+        parseEditDateTime(house, doc);
+    }
 
-        String price = doc.getElementsByAttributeValue("data-testid", "contact-box-price-box-price-value").html().replaceAll("[^0-9,]", "").replaceAll(" ", "");
-        house.setPrice(price);
+    private void parseEditDateTime(House house, Document doc) {
+        String editDateTime = doc.getElementsByAttributeValue("data-testid", "ad-detail-ad-edit-date").html();
+        house.setEditDate(editDateTime.split(", ")[0]);
+        house.setEditTime(editDateTime.split(", ")[1].substring(0, 4));
+    }
 
+    private void parseTransactionFee(House house, Document doc) {
         Element priceInfoSection = doc
                 .getElementsByAttributeValue("data-testid", "price-information-box")
                 .first();
@@ -90,10 +101,22 @@ public class ParserService {
                     .replaceAll("&nbsp;", " ");
         }
         house.setTransactionFee(transactionFee);
+    }
 
-        String editDateTime = doc.getElementsByAttributeValue("data-testid", "ad-detail-ad-edit-date").html();
-        house.setEditDate(editDateTime.split(", ")[0]);
-        house.setEditTime(editDateTime.split(", ")[1].substring(0, 4));
+    private void parsePrice(House house, Document doc) {
+        String price = doc.getElementsByAttributeValue("data-testid", "contact-box-price-box-price-value")
+                .html()
+                .replaceAll("[^0-9,]", "")
+                .replaceAll(" ", "");
+        house.setPrice(price);
+    }
+
+    private void parseLocation(House house, Element detailsSection) {
+        String location = detailsSection
+                .getElementsByAttributeValue("data-testid", "object-location-address")
+                .first()
+                .html();
+        house.setLocation(location.replaceAll("&amp;", "&"));
     }
 
     private void processAttributeElement(Element element, House house) {
@@ -130,6 +153,4 @@ public class ParserService {
                 }
         }
     }
-
-
 }

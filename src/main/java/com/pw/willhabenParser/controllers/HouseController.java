@@ -5,8 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-
 @RestController
 public class HouseController {
 
@@ -14,14 +12,20 @@ public class HouseController {
     HTMLRenderer htmlRenderer;
 
     @GetMapping("/newest")
-    public String newestHouses() throws IOException {
-        return htmlRenderer.getHTMLNewestHouses();
+    public String newestHouses() {
+        try {
+            return htmlRenderer.getHTMLNewestHouses();
+        } catch (Exception e) {
+            return e.getLocalizedMessage();
+        }
     }
 
     @GetMapping("/belowavg")
-    public String belowAvgHouses() throws IOException {
-        return htmlRenderer.getHTMLBelowAvg();
+    public String belowAvgHouses() {
+        try {
+            return htmlRenderer.getHTMLBelowAvg();
+        } catch (Exception e) {
+            return e.getLocalizedMessage();
+        }
     }
-
-
 }

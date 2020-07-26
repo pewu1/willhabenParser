@@ -6,7 +6,7 @@ import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 import com.amazonaws.services.dynamodbv2.util.TableUtils;
 import com.pw.willhabenParser.model.House;
-import com.pw.willhabenParser.repositories.HousesRepository;
+import com.pw.willhabenParser.repositories.HouseRepository;
 import com.pw.willhabenParser.service.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Singleton
-public class HousesDao {
+public class HouseDao {
 
     private final List<House> houseList = new ArrayList<>();
     private final Set<String> linksSet = new HashSet<>();
@@ -33,7 +33,7 @@ public class HousesDao {
     private AmazonDynamoDB amazonDynamoDB;
 
     @Autowired
-    private HousesRepository repository;
+    private HouseRepository repository;
 
     @PostConstruct
     private void createTable() {

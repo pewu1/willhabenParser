@@ -13,8 +13,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static com.pw.willhabenParser.service.ParserService.DECIMAL_FORMAT;
-
 @DynamoDBTable(tableName = "houses")
 public class House implements Serializable {
 
@@ -302,6 +300,7 @@ public class House implements Serializable {
     @JsonIgnore
     @DynamoDBIgnore
     private String getFormattedString(Number value) {
+        final String DECIMAL_FORMAT = "###,###.##";
         DecimalFormatSymbols formatSymbols = new DecimalFormatSymbols(Locale.getDefault());
         formatSymbols.setDecimalSeparator(',');
         formatSymbols.setGroupingSeparator(' ');

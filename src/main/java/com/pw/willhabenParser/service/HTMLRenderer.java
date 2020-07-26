@@ -1,6 +1,6 @@
 package com.pw.willhabenParser.service;
 
-import com.pw.willhabenParser.dao.HousesDao;
+import com.pw.willhabenParser.dao.HouseDao;
 import com.pw.willhabenParser.model.House;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -13,7 +13,7 @@ import java.util.Optional;
 public class HTMLRenderer {
 
     @Autowired
-    HousesDao dao;
+    HouseDao dao;
 
     public String getHTMLNewestHouses() throws IOException {
         return getHTML(dao.getAllHouses());

@@ -1,7 +1,6 @@
 package com.pw.willhabenParser.service;
 
 import com.pw.willhabenParser.model.House;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Singleton;
@@ -15,6 +14,7 @@ public class ValidationService {
         return isNotEmpty(house.getPrice()) && isNumber(house.getPrice()) && !house.getPrice().equals("1") &&
                 isNotEmpty(house.getSize()) && isNumber(house.getSize()) &&
                 isNotEmpty(house.getEditDate()) && isDate(house.getEditDate()) &&
+                isNotEmpty(house.getEditTime()) && isTime(house.getEditTime()) &&
                 isNotEmpty(house.getLink()) && isLink(house.getLink()) &&
                 isNotEmpty(house.getPictureLink()) && isLink(house.getPictureLink()) &&
                 isNotEmpty(house.getLocation());
@@ -45,5 +45,14 @@ public class ValidationService {
                 isNumber(parsedDate[0]) &&
                 isNumber(parsedDate[1]) &&
                 isNumber(parsedDate[2]);
+    }
+
+    private boolean isTime(String str) {
+        String[] parsedTime = str.split(Pattern.quote(":"));
+        return parsedTime.length == 2 &&
+                isNumber(parsedTime[0]) &&
+                isNumber(parsedTime[1]) &&
+                (Integer.parseInt(parsedTime[0]) < 24) &&
+                (Integer.parseInt(parsedTime[1]) < 60);
     }
 }
