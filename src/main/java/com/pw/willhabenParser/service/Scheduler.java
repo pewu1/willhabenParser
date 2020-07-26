@@ -52,7 +52,7 @@ public class Scheduler {
                     .collect(Collectors.toCollection(Elements::new));
 
             for (int i = 0; i < entries.size(); i++) {
-                System.out.println("Processing " + (i + 1) + "/" + entries.size() + " page: " + (counter - 1));
+                System.out.println("Processing " + (i + 1) + "/" + entries.size() + " page: " + (counter - 1) + "for area code: " + areaNumber);
                 try {
                     House house = parserService.parseEntry(entries.get(i));
                     dao.persist(house);
