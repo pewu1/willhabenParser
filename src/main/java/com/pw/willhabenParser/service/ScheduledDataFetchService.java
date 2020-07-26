@@ -32,12 +32,12 @@ public class ScheduledDataFetchService {
             for (int i = 1; i <= 9; i++) {
                 fetchDataForArea(i);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.out.println(e.getLocalizedMessage());
         }
     }
 
-    private void fetchDataForArea(int areaNumber) throws IOException {
+    private void fetchDataForArea(int areaNumber) throws IOException, IllegalArgumentException {
         Document doc = Jsoup.connect(BUY_HOUSE_URL + areaNumber).get();
         Element resultList = doc.getElementById("resultlist");
         if (resultList == null) {
@@ -61,14 +61,10 @@ public class ScheduledDataFetchService {
                 .collect(Collectors.toCollection(Elements::new));
     }
 
-    private void parseAll(Elements entries) throws IOException {
+    private void parseAll(Elements entries) throws IOException, IllegalArgumentException {
         for (Element entry : entries) {
-            try {
-                House house = parserService.parseEntry(entry);
-                dao.persist(house);
-            } catch (IllegalArgumentException e) {
-                System.out.println(e.getLocalizedMessage());
-            }
+            House house = parserService.parseEntry(entry);
+            dao.persist(house);
         }
     }
 }
