@@ -52,7 +52,6 @@ public class HouseDao {
     private void loadHouses() {
         System.out.println("Loading data from AWS...");
         Iterable<House> houses = repository.findAll();
-        houses.forEach(this::repairTime);
         houses.forEach(houseList::add);
         System.out.println("Loaded entries: " + houseList.size());
         linksSet.addAll(houseList.stream().filter(House::isVerified).map(House::getLink).collect(Collectors.toList()));
@@ -60,14 +59,7 @@ public class HouseDao {
         errorLinksSet.addAll(houseList.stream().filter(house -> !house.isVerified()).map(House::getLink).filter(Objects::nonNull).collect(Collectors.toList()));
         errorLinksSet.addAll(houseList.stream().filter(house -> !house.isVerified()).map(House::getPictureLink).filter(Objects::nonNull).collect(Collectors.toList()));
     }
-
-    private void repairTime(House house) {
-        if (house.getEditTime() != null && house.getEditTime().length() < 5) {
-            house.setEditTime(null);
-            repository.save(house);
-        }
-    }
-
+    
     public List<House> getAllHouses() {
         if (houseList.isEmpty()) {
             loadHouses();
