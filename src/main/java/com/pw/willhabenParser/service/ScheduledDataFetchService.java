@@ -29,9 +29,9 @@ public class ScheduledDataFetchService {
     public void fetchData() {
         try {
             fetchDataForArea(4);
-            for (int i = 1; i <= 9; i++) {
-                fetchDataForArea(i);
-            }
+//            for (int i = 1; i <= 9; i++) {
+//                fetchDataForArea(i);
+//            }
         } catch (Exception e) {
             System.out.println(e.getLocalizedMessage());
         }
