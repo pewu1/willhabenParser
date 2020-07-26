@@ -85,7 +85,7 @@ public class ParserService {
     private void parseEditDateTime(House house, Document doc) {
         String editDateTime = doc.getElementsByAttributeValue("data-testid", "ad-detail-ad-edit-date").html();
         house.setEditDate(editDateTime.split(", ")[0]);
-        house.setEditTime(editDateTime.split(", ")[1].substring(0, 4));
+        house.setEditTime(editDateTime.split(", ")[1].substring(0, 5));
     }
 
     private void parseTransactionFee(House house, Document doc) {
