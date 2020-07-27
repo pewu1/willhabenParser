@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class ScheduledDataFetchService {
 
     public static final String MAIN_URL = "https://www.willhaben.at";
-    private static final String BUY_HOUSE_URL = MAIN_URL + "/iad/immobilien/haus-kaufen/haus-angebote?rows=100&areaId=";
+    private static final String BUY_HOUSE_URL = MAIN_URL + "/iad/immobilien/haus-kaufen/haus-angebote?rows=100&&sort=1&areaId=";
 
     @Autowired
     HouseDao dao;
