@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 public class HTMLRenderer {
@@ -21,6 +22,12 @@ public class HTMLRenderer {
 
     public String getHTMLBelowAvg() throws IOException {
         return getHTML(dao.getHousesBelowAveragePrice());
+    }
+
+    public String getHTMLNewestUpperAustria() throws IOException {
+        return getHTML(dao.getAllHouses().stream()
+                .filter(house -> house.getStateName().equals("Oberösterreich"))
+                .collect(Collectors.toList()));
     }
 
     private String getHTML(List<House> houseList) throws IOException {

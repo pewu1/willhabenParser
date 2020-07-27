@@ -28,4 +28,18 @@ public class HouseController {
             return e.getLocalizedMessage();
         }
     }
+
+    @GetMapping("/oo")
+    public String newestUpperAustria() {
+        try {
+            return htmlRenderer.getHTMLNewestUpperAustria();
+        } catch (Exception e) {
+            return e.getLocalizedMessage();
+        }
+    }
+
+    @GetMapping("/keepalive")
+    public String keepAlive() {
+        return "OK";
+    }
 }

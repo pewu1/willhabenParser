@@ -326,7 +326,7 @@ public class House implements Serializable {
 
     @JsonIgnore
     @DynamoDBIgnore
-    private String getPostalCode() {
+    public String getPostalCode() {
         String[] locationSplitted = this.location.split(", ");
         return Stream.of(locationSplitted)
                 .map(this::parsePostalCode)
@@ -337,7 +337,7 @@ public class House implements Serializable {
 
     @JsonIgnore
     @DynamoDBIgnore
-    private String getLocationName() {
+    public String getLocationName() {
         String[] locationSplitted = this.location.split(", ");
         Optional<String> resultOpt = Stream.of(locationSplitted)
                 .filter(s -> parsePostalCode(s) != null)
@@ -351,7 +351,7 @@ public class House implements Serializable {
 
     @JsonIgnore
     @DynamoDBIgnore
-    private String getDistrictName() {
+    public String getDistrictName() {
         String[] locationSplitted = this.location.split(", ");
         for (int i = 0; i < locationSplitted.length; i++) {
             if (parsePostalCode(locationSplitted[i]) != null) {
@@ -367,7 +367,7 @@ public class House implements Serializable {
 
     @JsonIgnore
     @DynamoDBIgnore
-    private String getStateName() {
+    public String getStateName() {
         return location.substring(location.lastIndexOf(", ") + 2);
     }
 }
