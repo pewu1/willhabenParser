@@ -5,7 +5,6 @@ import com.pw.willhabenParser.model.House;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,22 +15,29 @@ public class HTMLRenderer {
     @Autowired
     HouseDao dao;
 
-    public String getHTMLNewestHouses() throws IOException {
+    public String getHTMLNewestHouses() {
         return getHTML(dao.getAllHouses());
     }
 
-    public String getHTMLBelowAvg() throws IOException {
+    public String getHTMLBelowAvg() {
         return getHTML(dao.getHousesBelowAveragePrice());
     }
 
-    public String getHTMLNewestUpperAustria() throws IOException {
+    public String getHTMLNewestUpperAustria() {
         return getHTML(dao.getAllHouses().stream()
                 .filter(house -> house.getStateName().equals("Oberösterreich"))
-                .filter(house -> !house.getGroundArea().equals("0"))
+                .filter(this::getDefaultFilters)
                 .collect(Collectors.toList()));
     }
 
-    private String getHTML(List<House> houseList) throws IOException {
+    private boolean getDefaultFilters(House house) {
+        if (house.getGroundArea() != null && house.getGroundArea().equals("0")) {
+            return false;
+        }
+        return true;
+    }
+
+    private String getHTML(List<House> houseList) {
         StringBuilder stringBuilder = new StringBuilder("<table style=\"width:100%\"><tr>" +
                 "<th width=\"200\">Photo</th>" +
                 "<th width=\"40\">Size</th>" +

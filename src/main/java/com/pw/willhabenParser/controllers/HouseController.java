@@ -13,29 +13,17 @@ public class HouseController {
 
     @GetMapping("/newest")
     public String newestHouses() {
-        try {
-            return htmlRenderer.getHTMLNewestHouses();
-        } catch (Exception e) {
-            return e.getLocalizedMessage();
-        }
+        return htmlRenderer.getHTMLNewestHouses();
     }
 
     @GetMapping("/belowavg")
     public String belowAvgHouses() {
-        try {
-            return htmlRenderer.getHTMLBelowAvg();
-        } catch (Exception e) {
-            return e.getLocalizedMessage();
-        }
+        return htmlRenderer.getHTMLBelowAvg();
     }
 
     @GetMapping("/oo")
     public String newestUpperAustria() {
-        try {
-            return htmlRenderer.getHTMLNewestUpperAustria();
-        } catch (Exception e) {
-            return e.getLocalizedMessage();
-        }
+        return htmlRenderer.getHTMLNewestUpperAustria();
     }
 
     @GetMapping("/keepalive")
