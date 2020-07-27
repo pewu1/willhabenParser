@@ -145,6 +145,11 @@ public class ParserService {
             case "Grundfläche":
                 house.setGroundArea(attributeValue.replaceAll("[^0-9,]", ""));
                 break;
+            case "Nutzfläche":
+                if (house.getSize() == null || house.getSize().isEmpty()) {
+                    house.setSize(attributeValue.replaceAll("[^0-9,]", ""));
+                }
+                break;
             default:
                 if (house.getInfo() != null) {
                     house.setInfo(house.getInfo() + ", " + attributeName + ": " + attributeValue);
