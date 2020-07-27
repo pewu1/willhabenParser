@@ -27,6 +27,7 @@ public class HTMLRenderer {
     public String getHTMLNewestUpperAustria() throws IOException {
         return getHTML(dao.getAllHouses().stream()
                 .filter(house -> house.getStateName().equals("Oberösterreich"))
+                .filter(house -> !house.getGroundArea().equals("0"))
                 .collect(Collectors.toList()));
     }
 
