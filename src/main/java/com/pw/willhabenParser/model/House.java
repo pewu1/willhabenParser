@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @DynamoDBTable(tableName = "houses")
@@ -69,7 +70,7 @@ public class House implements Serializable {
     @DynamoDBIgnore
     public String getFormattedPrice() {
         if (this.price != null && !this.price.isEmpty()) {
-            Double priceVal = Double.parseDouble(this.price);
+            Double priceVal = Double.parseDouble(this.price.replaceAll(",", Pattern.quote(".")));
             return getFormattedString(priceVal);
         } else {
             return this.price;
