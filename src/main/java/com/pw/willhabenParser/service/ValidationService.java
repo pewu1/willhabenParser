@@ -12,6 +12,7 @@ public class ValidationService {
 
     public boolean isVerified(House house) {
         return isNotEmpty(house.getPrice()) && isNumber(house.getPrice()) && !house.getPrice().equals("1") &&
+                isNotEmpty(house.getGroundArea()) && isNumber(house.getGroundArea()) && !house.getGroundArea().equals("0") &&
                 isNotEmpty(house.getSize()) && isNumber(house.getSize()) &&
                 isNotEmpty(house.getEditDate()) && isDate(house.getEditDate()) &&
                 isNotEmpty(house.getEditTime()) && isTime(house.getEditTime()) &&

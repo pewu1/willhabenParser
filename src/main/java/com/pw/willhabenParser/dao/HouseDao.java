@@ -59,7 +59,7 @@ public class HouseDao {
         errorLinksSet.addAll(houseList.stream().filter(house -> !house.isVerified()).map(House::getLink).filter(Objects::nonNull).collect(Collectors.toList()));
         errorLinksSet.addAll(houseList.stream().filter(house -> !house.isVerified()).map(House::getPictureLink).filter(Objects::nonNull).collect(Collectors.toList()));
     }
-    
+
     public List<House> getAllHouses() {
         if (houseList.isEmpty()) {
             loadHouses();
