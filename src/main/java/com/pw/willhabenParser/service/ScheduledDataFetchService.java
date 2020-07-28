@@ -7,7 +7,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -25,8 +24,8 @@ public class ScheduledDataFetchService {
     @Autowired
     ParserService parserService;
 
-    @Scheduled(fixedRate = 3600000)
-    public void fetchData() {
+    public String fetchData() {
+        int entriesBefore = dao.getAllHouses().size();
         try {
             fetchDataForArea(4);
 //            for (int i = 1; i <= 9; i++) {
@@ -34,7 +33,9 @@ public class ScheduledDataFetchService {
 //            }
         } catch (Exception e) {
             System.out.println(e.getLocalizedMessage());
+            return e.getLocalizedMessage();
         }
+        return "New: " + (dao.getAllHouses().size() - entriesBefore) + "/ Total: " + dao.getAllHouses().size();
     }
 
     private void fetchDataForArea(int areaNumber) throws IOException {

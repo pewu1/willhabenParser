@@ -1,6 +1,7 @@
 package com.pw.willhabenParser.controllers;
 
 import com.pw.willhabenParser.service.HTMLRenderer;
+import com.pw.willhabenParser.service.ScheduledDataFetchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,6 +11,9 @@ public class HouseController {
 
     @Autowired
     HTMLRenderer htmlRenderer;
+
+    @Autowired
+    ScheduledDataFetchService scheduledDataFetchService;
 
     @GetMapping("/newest")
     public String newestHouses() {
@@ -26,8 +30,8 @@ public class HouseController {
         return htmlRenderer.getHTMLNewestUpperAustria();
     }
 
-    @GetMapping("/keepalive")
+    @GetMapping("/fetchdata")
     public String keepAlive() {
-        return "OK";
+        return scheduledDataFetchService.fetchData();
     }
 }
