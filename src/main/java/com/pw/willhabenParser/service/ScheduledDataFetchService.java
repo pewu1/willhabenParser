@@ -36,7 +36,7 @@ public class ScheduledDataFetchService {
         } catch (Exception e) {
             System.out.println(e.getLocalizedMessage());
         }
-        return "New: " + (dao.getAllHouses().size() - entriesBefore) + "/ Total: " + dao.getAllHouses().size();
+        return "New: " + (dao.getAllHouses().size() - entriesBefore) + " | Total: " + dao.getAllHouses().size();
     }
 
     private void fetchDataForArea(int areaNumber) throws IOException {
