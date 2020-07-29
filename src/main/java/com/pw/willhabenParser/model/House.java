@@ -33,6 +33,10 @@ public class House implements Serializable {
     private String editTime;
     private String transactionFee;
     private boolean isVerified;
+    private String postalCode;
+    private String locationName;
+    private String stateName;
+    private String districtName;
 
     public House() {
     }
@@ -87,6 +91,10 @@ public class House implements Serializable {
 
     public void setLocation(String location) {
         this.location = location;
+        setPostalCode();
+        setLocationName();
+        setDistrictName();
+        setStateName();
     }
 
     @DynamoDBAttribute
@@ -326,9 +334,9 @@ public class House implements Serializable {
 
     @JsonIgnore
     @DynamoDBIgnore
-    public String getPostalCode() {
+    public void setPostalCode() {
         String[] locationSplitted = this.location.split(", ");
-        return Stream.of(locationSplitted)
+        this.postalCode = Stream.of(locationSplitted)
                 .map(this::parsePostalCode)
                 .filter(Objects::nonNull)
                 .findFirst()
@@ -337,37 +345,63 @@ public class House implements Serializable {
 
     @JsonIgnore
     @DynamoDBIgnore
-    public String getLocationName() {
+    public void setLocationName() {
         String[] locationSplitted = this.location.split(", ");
-        Optional<String> resultOpt = Stream.of(locationSplitted)
-                .filter(s -> parsePostalCode(s) != null)
-                .findFirst();
-        if (resultOpt.isEmpty()) {
-            return locationSplitted[0];
+
+        if (this.postalCode == null || this.postalCode.isEmpty()) {
+            this.locationName = locationSplitted[0];
         } else {
-            return resultOpt.get().replaceAll("[0-9]", "").trim();
+            Optional<String> resultOpt = Stream.of(locationSplitted)
+                    .filter(s -> s.startsWith(this.postalCode))
+                    .findFirst();
+
+            if (resultOpt.isEmpty()) {
+                this.locationName = locationSplitted[0];
+            } else {
+                this.locationName = resultOpt.get().replaceAll("[0-9]", "").trim();
+            }
         }
     }
 
     @JsonIgnore
     @DynamoDBIgnore
-    public String getDistrictName() {
+    public void setDistrictName() {
         String[] locationSplitted = this.location.split(", ");
         for (int i = 0; i < locationSplitted.length; i++) {
             if (parsePostalCode(locationSplitted[i]) != null) {
                 if (i + 3 > locationSplitted.length) {
-                    return getLocationName();
+                    this.districtName = getLocationName();
                 } else {
-                    return locationSplitted[i + 1];
+                    this.districtName = locationSplitted[i + 1];
                 }
             }
         }
-        return "";
+        this.districtName = "";
     }
 
     @JsonIgnore
     @DynamoDBIgnore
+    public void setStateName() {
+        this.stateName = location.substring(location.lastIndexOf(", ") + 2);
+    }
+
+    @DynamoDBAttribute
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    @DynamoDBAttribute
+    public String getLocationName() {
+        return locationName;
+    }
+
+    @DynamoDBAttribute
     public String getStateName() {
-        return location.substring(location.lastIndexOf(", ") + 2);
+        return stateName;
+    }
+
+    @DynamoDBAttribute
+    public String getDistrictName() {
+        return districtName;
     }
 }
