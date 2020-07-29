@@ -332,8 +332,6 @@ public class House implements Serializable {
         return sb.toString();
     }
 
-    @JsonIgnore
-    @DynamoDBIgnore
     public void setPostalCode() {
         String[] locationSplitted = this.location.split(", ");
         this.postalCode = Stream.of(locationSplitted)
@@ -343,8 +341,6 @@ public class House implements Serializable {
                 .orElse("");
     }
 
-    @JsonIgnore
-    @DynamoDBIgnore
     public void setLocationName() {
         String[] locationSplitted = this.location.split(", ");
 
@@ -363,8 +359,6 @@ public class House implements Serializable {
         }
     }
 
-    @JsonIgnore
-    @DynamoDBIgnore
     public void setDistrictName() {
         String[] locationSplitted = this.location.split(", ");
         for (int i = 0; i < locationSplitted.length; i++) {
@@ -379,8 +373,6 @@ public class House implements Serializable {
         this.districtName = "";
     }
 
-    @JsonIgnore
-    @DynamoDBIgnore
     public void setStateName() {
         this.stateName = location.substring(location.lastIndexOf(", ") + 2);
     }
@@ -403,5 +395,21 @@ public class House implements Serializable {
     @DynamoDBAttribute
     public String getDistrictName() {
         return districtName;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
+    }
+
+    public void setLocationName(String locationName) {
+        this.locationName = locationName;
+    }
+
+    public void setStateName(String stateName) {
+        this.stateName = stateName;
+    }
+
+    public void setDistrictName(String districtName) {
+        this.districtName = districtName;
     }
 }
