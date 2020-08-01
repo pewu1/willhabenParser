@@ -85,7 +85,7 @@ public class HouseRestController {
                     .filter(house -> house.getPriceAsValue() <= maxPriceVal)
                     .collect(Collectors.toList());
             if (result.isEmpty()) {
-                houseList.add(houseList.stream()
+                result.add(houseList.stream()
                         .filter(house -> house.getPriceAsValue() != null)
                         .min(Comparator.comparingDouble(House::getPriceAsValue))
                         .orElse(null));
