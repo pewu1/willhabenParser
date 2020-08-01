@@ -54,6 +54,11 @@ public class ParserService {
             throw new IllegalArgumentException("House link is null");
         }
 
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         Document doc = Jsoup.connect(house.getLink()).get();
         if (doc == null) {
             throw new IOException("Unable to connect");

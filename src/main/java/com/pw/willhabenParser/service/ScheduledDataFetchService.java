@@ -41,7 +41,7 @@ public class ScheduledDataFetchService {
         Document doc = Jsoup.connect(BUY_HOUSE_URL + areaNumber).get();
         Element resultList = doc.getElementById("resultlist");
         if (resultList == null) {
-            System.out.println("Error, no result list");
+            throw new IOException("No result list");
         }
         int counter = 2;
 
