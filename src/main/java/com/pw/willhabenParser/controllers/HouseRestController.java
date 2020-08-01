@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -79,10 +80,17 @@ public class HouseRestController {
     private List<House> filterForMaxPrice(List<House> houseList, String maxPrice) {
         if (isValidParameter(maxPrice)) {
             double maxPriceVal = Double.parseDouble(maxPrice.replace(",", "."));
-            return houseList.stream()
+            List<House> result = houseList.stream()
                     .filter(house -> house.getPriceAsValue() != null)
                     .filter(house -> house.getPriceAsValue() <= maxPriceVal)
                     .collect(Collectors.toList());
+            if (result.isEmpty()) {
+                houseList.add(houseList.stream()
+                        .filter(house -> house.getPriceAsValue() != null)
+                        .min(Comparator.comparingDouble(House::getPriceAsValue))
+                        .orElse(null));
+            }
+            return result;
 
         } else {
             return houseList;
