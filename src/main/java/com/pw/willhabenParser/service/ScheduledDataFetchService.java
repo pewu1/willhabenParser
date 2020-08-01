@@ -7,13 +7,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.stream.Collectors;
 
-@Component
-public class ScheduledDataFetchService {
+public class ScheduledDataFetchService extends Thread {
 
     public static final String MAIN_URL = "https://www.willhaben.at";
     private static final String BUY_HOUSE_URL = MAIN_URL + "/iad/immobilien/haus-kaufen/haus-angebote?rows=100&&sort=1&areaId=";
@@ -24,7 +22,7 @@ public class ScheduledDataFetchService {
     @Autowired
     ParserService parserService;
 
-    public String fetchData() {
+    private String fetchData() {
         int entriesBefore = dao.getAllHouses().size();
         try {
             fetchDataForArea(4);
@@ -70,5 +68,10 @@ public class ScheduledDataFetchService {
                 System.out.println(e.getLocalizedMessage());
             }
         }
+    }
+
+    @Override
+    public void run() {
+        fetchData();
     }
 }

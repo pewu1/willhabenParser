@@ -7,13 +7,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class HouseController {
+public class DataController {
 
     @Autowired
     HTMLRenderer htmlRenderer;
-
-    @Autowired
-    ScheduledDataFetchService scheduledDataFetchService;
 
     @GetMapping("/newest")
     public String newestHouses() {
@@ -32,6 +29,12 @@ public class HouseController {
 
     @GetMapping("/fetchdata")
     public String keepAlive() {
-        return scheduledDataFetchService.fetchData();
+        try {
+            ScheduledDataFetchService dataFetchThread = new ScheduledDataFetchService();
+            dataFetchThread.start();
+        } catch (IllegalStateException e) {
+            return e.getLocalizedMessage();
+        }
+        return "OK";
     }
 }

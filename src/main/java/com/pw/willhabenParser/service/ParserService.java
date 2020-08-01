@@ -57,7 +57,7 @@ public class ParserService {
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            System.out.println(e.getLocalizedMessage());
         }
         Document doc = Jsoup.connect(house.getLink()).get();
         if (doc == null) {
