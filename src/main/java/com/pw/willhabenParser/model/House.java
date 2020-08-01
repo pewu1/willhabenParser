@@ -289,30 +289,6 @@ public class House implements Serializable {
     }
 
     @Override
-    public String toString() {
-        return Optional.ofNullable(editDate).orElse("") + ";" +
-                Optional.ofNullable(getPostalCode()).orElse("") + ";" +
-                Optional.of(getLocationName()).orElse("") + ";" +
-                Optional.of(getDistrictName()).orElse("") + ";" +
-                Optional.of(getStateName()).orElse("") + ";" +
-                Optional.ofNullable(price).orElse("") + ";" +
-                Optional.ofNullable(size).orElse("") + ";" +
-                Optional.ofNullable(getAvgMeterPriceStr()).orElse("") + ";" +
-                Optional.ofNullable(groundArea).orElse("") + ";" +
-                Optional.ofNullable(rooms).orElse("") + ";" +
-                Optional.ofNullable(objectType).orElse("") + ";" +
-                Optional.ofNullable(age).orElse("") + ";" +
-                Optional.ofNullable(condition).orElse("") + ";" +
-                Optional.ofNullable(heatingType).orElse("") + ";" +
-                Optional.ofNullable(info).orElse("") + ";" +
-                Optional.ofNullable(getTransactionFee()).orElse("") + ";" +
-                Optional.ofNullable(link).orElse("") + ";" +
-                Optional.ofNullable(pictureLink).orElse("") + ";" +
-                hashCode() + ";" +
-                "\r\n";
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -361,6 +337,8 @@ public class House implements Serializable {
         return sb.toString();
     }
 
+    @JsonIgnore
+    @DynamoDBIgnore
     public void setPostalCode() {
         String[] locationSplitted = this.location.split(", ");
         this.postalCode = Stream.of(locationSplitted)
@@ -370,6 +348,8 @@ public class House implements Serializable {
                 .orElse("");
     }
 
+    @JsonIgnore
+    @DynamoDBIgnore
     public void setLocationName() {
         String[] locationSplitted = this.location.split(", ");
 
@@ -388,6 +368,8 @@ public class House implements Serializable {
         }
     }
 
+    @JsonIgnore
+    @DynamoDBIgnore
     public void setDistrictName() {
         String[] locationSplitted = this.location.split(", ");
         for (int i = 0; i < locationSplitted.length; i++) {
@@ -402,6 +384,8 @@ public class House implements Serializable {
         }
     }
 
+    @JsonIgnore
+    @DynamoDBIgnore
     public void setStateName() {
         this.stateName = location.substring(location.lastIndexOf(", ") + 2);
     }
@@ -427,34 +411,20 @@ public class House implements Serializable {
     }
 
     public void setPostalCode(String postalCode) {
-        if (postalCode == null || postalCode.isEmpty()) {
-            setPostalCode();
-        } else {
-            this.postalCode = postalCode;
-        }
+        this.postalCode = postalCode;
+
     }
 
     public void setLocationName(String locationName) {
-        if (locationName == null || locationName.isEmpty()) {
-            setLocationName();
-        } else {
-            this.locationName = locationName;
-        }
+        this.locationName = locationName;
     }
 
     public void setStateName(String stateName) {
-        if (stateName == null || stateName.isEmpty()) {
-            setStateName();
-        } else {
-            this.stateName = stateName;
-        }
+        this.stateName = stateName;
     }
 
     public void setDistrictName(String districtName) {
-        if (districtName == null || districtName.isEmpty()) {
-            setDistrictName();
-        } else {
-            this.districtName = districtName;
-        }
+        this.districtName = districtName;
+
     }
 }
