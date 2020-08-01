@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class DataController {
 
     @Autowired
+    ScheduledDataFetchService scheduledDataFetchService;
+
+    @Autowired
     HTMLRenderer htmlRenderer;
 
     @GetMapping("/newest")
@@ -30,8 +33,7 @@ public class DataController {
     @GetMapping("/fetchdata")
     public String keepAlive() {
         try {
-            ScheduledDataFetchService dataFetchThread = new ScheduledDataFetchService();
-            dataFetchThread.start();
+            scheduledDataFetchService.start();
         } catch (IllegalStateException e) {
             return e.getLocalizedMessage();
         }
