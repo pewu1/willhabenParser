@@ -124,10 +124,6 @@ public class House implements Serializable {
 
     public void setLocation(String location) {
         this.location = location;
-        setPostalCode();
-        setLocationName();
-        setDistrictName();
-        setStateName();
     }
 
     @DynamoDBAttribute
@@ -431,18 +427,34 @@ public class House implements Serializable {
     }
 
     public void setPostalCode(String postalCode) {
-        this.postalCode = postalCode;
+        if (postalCode == null || postalCode.isEmpty()) {
+            setPostalCode();
+        } else {
+            this.postalCode = postalCode;
+        }
     }
 
     public void setLocationName(String locationName) {
-        this.locationName = locationName;
+        if (locationName == null || locationName.isEmpty()) {
+            setLocationName();
+        } else {
+            this.locationName = locationName;
+        }
     }
 
     public void setStateName(String stateName) {
-        this.stateName = stateName;
+        if (stateName == null || stateName.isEmpty()) {
+            setStateName();
+        } else {
+            this.stateName = stateName;
+        }
     }
 
     public void setDistrictName(String districtName) {
-        this.districtName = districtName;
+        if (districtName == null || districtName.isEmpty()) {
+            setDistrictName();
+        } else {
+            this.districtName = districtName;
+        }
     }
 }

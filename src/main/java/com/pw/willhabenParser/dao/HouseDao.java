@@ -52,21 +52,12 @@ public class HouseDao {
     private void loadHouses() {
         System.out.println("Loading data from AWS...");
         Iterable<House> houses = repository.findAll();
-        houses.forEach(house -> repair(house));
-        repository.saveAll(houses);
         houses.forEach(houseList::add);
         System.out.println("Loaded entries: " + houseList.size());
         linksSet.addAll(houseList.stream().filter(House::isVerified).map(House::getLink).collect(Collectors.toList()));
         linksSet.addAll(houseList.stream().filter(House::isVerified).map(House::getPictureLink).collect(Collectors.toList()));
         errorLinksSet.addAll(houseList.stream().filter(house -> !house.isVerified()).map(House::getLink).filter(Objects::nonNull).collect(Collectors.toList()));
         errorLinksSet.addAll(houseList.stream().filter(house -> !house.isVerified()).map(House::getPictureLink).filter(Objects::nonNull).collect(Collectors.toList()));
-    }
-
-    private void repair(House house) {
-        if (house.getDistrictName() == null || house.getDistrictName().isEmpty()) {
-            house.setDistrictName();
-            System.out.println(house.getDistrictName());
-        }
     }
 
     public List<House> getAllHouses() {

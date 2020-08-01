@@ -117,6 +117,10 @@ public class ParserService {
                 .first()
                 .html();
         house.setLocation(location.replaceAll("&amp;", "&"));
+        house.setPostalCode();
+        house.setLocationName();
+        house.setDistrictName();
+        house.setStateName();
     }
 
     private void processAttributeElement(Element element, House house) {
