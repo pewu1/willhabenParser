@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
@@ -20,27 +22,26 @@ public class HouseRestController {
     HouseDao houseDao;
 
     @GetMapping(value = "/", produces = {MediaType.APPLICATION_JSON_VALUE})
-    public List<House> getAll(@RequestParam(required = false) String maxPrice, @RequestParam(required = false) String minSize, @RequestParam(required = false) String rooms, @RequestParam(required = false) String type, @RequestParam(required = false) String age, @RequestParam(required = false) String condition, @RequestParam(required = false) String minGround, @RequestParam(required = false) String postedAfter, @RequestParam(required = false) Integer limit, @RequestParam(required = false) Integer page) {
+    public List<House> getAll(@RequestParam(required = false) String maxPrice, @RequestParam(required = false) String minSize, @RequestParam(required = false) String rooms, @RequestParam(required = false) String type, @RequestParam(required = false) String age, @RequestParam(required = false) String condition, @RequestParam(required = false) String minGround, @RequestParam(required = false) String postedAfter, @RequestParam(required = false) Integer limit, @RequestParam(required = false) Integer page, @RequestParam(required = false) String postedToday) {
         List<House> houseList = houseDao.getAllHouses();
-        houseList = processFilters(maxPrice, minSize, rooms, type, age, condition, minGround, postedAfter, limit, page, houseList);
+        houseList = processFilters(maxPrice, minSize, rooms, type, age, condition, minGround, postedAfter, limit, page, houseList, postedToday);
 
         return houseList;
     }
 
     @GetMapping(value = "/{state}", produces = {MediaType.APPLICATION_JSON_VALUE})
-    public List<House> getForState(@PathVariable String state, @RequestParam(required = false) String maxPrice, @RequestParam(required = false) String minSize, @RequestParam(required = false) String rooms, @RequestParam(required = false) String type, @RequestParam(required = false) String age, @RequestParam(required = false) String condition, @RequestParam(required = false) String minGround, @RequestParam(required = false) String postedAfter, @RequestParam(required = false) Integer limit, @RequestParam(required = false) Integer page) {
+    public List<House> getForState(@PathVariable String state, @RequestParam(required = false) String maxPrice, @RequestParam(required = false) String minSize, @RequestParam(required = false) String rooms, @RequestParam(required = false) String type, @RequestParam(required = false) String age, @RequestParam(required = false) String condition, @RequestParam(required = false) String minGround, @RequestParam(required = false) String postedAfter, @RequestParam(required = false) Integer limit, @RequestParam(required = false) Integer page, @RequestParam(required = false) String postedToday) {
         List<House> houseList = houseDao.getAllHouses().stream()
                 .filter(house -> house.getStateName() != null)
                 .filter(house -> house.getStateName().equalsIgnoreCase(state))
                 .collect(Collectors.toList());
 
-        houseList = processFilters(maxPrice, minSize, rooms, type, age, condition, minGround, postedAfter, limit, page, houseList);
-
+        houseList = processFilters(maxPrice, minSize, rooms, type, age, condition, minGround, postedAfter, limit, page, houseList, postedToday);
         return houseList;
     }
 
     @GetMapping(value = "/{state}/{district}", produces = {MediaType.APPLICATION_JSON_VALUE})
-    public List<House> getForDistrict(@PathVariable String state, @PathVariable String district, @RequestParam(required = false) String maxPrice, @RequestParam(required = false) String minSize, @RequestParam(required = false) String rooms, @RequestParam(required = false) String type, @RequestParam(required = false) String age, @RequestParam(required = false) String condition, @RequestParam(required = false) String minGround, @RequestParam(required = false) String postedAfter, @RequestParam(required = false) Integer limit, @RequestParam(required = false) Integer page) {
+    public List<House> getForDistrict(@PathVariable String state, @PathVariable String district, @RequestParam(required = false) String maxPrice, @RequestParam(required = false) String minSize, @RequestParam(required = false) String rooms, @RequestParam(required = false) String type, @RequestParam(required = false) String age, @RequestParam(required = false) String condition, @RequestParam(required = false) String minGround, @RequestParam(required = false) String postedAfter, @RequestParam(required = false) Integer limit, @RequestParam(required = false) Integer page, @RequestParam(required = false) String postedToday) {
         List<House> houseList = houseDao.getAllHouses().stream()
                 .filter(house -> house.getStateName() != null)
                 .filter(house -> house.getStateName().equalsIgnoreCase(state))
@@ -48,13 +49,12 @@ public class HouseRestController {
                 .filter(house -> house.getDistrictName().equalsIgnoreCase(district))
                 .collect(Collectors.toList());
 
-        houseList = processFilters(maxPrice, minSize, rooms, type, age, condition, minGround, postedAfter, limit, page, houseList);
-
+        houseList = processFilters(maxPrice, minSize, rooms, type, age, condition, minGround, postedAfter, limit, page, houseList, postedToday);
         return houseList;
     }
 
     @GetMapping(value = "/{state}/{district}/{location}", produces = {MediaType.APPLICATION_JSON_VALUE})
-    public List<House> getForLocation(@PathVariable String state, @PathVariable String district, @PathVariable String location, @RequestParam(required = false) String maxPrice, @RequestParam(required = false) String minSize, @RequestParam(required = false) String rooms, @RequestParam(required = false) String type, @RequestParam(required = false) String age, @RequestParam(required = false) String condition, @RequestParam(required = false) String minGround, @RequestParam(required = false) String postedAfter, @RequestParam(required = false) Integer limit, @RequestParam(required = false) Integer page) {
+    public List<House> getForLocation(@PathVariable String state, @PathVariable String district, @PathVariable String location, @RequestParam(required = false) String maxPrice, @RequestParam(required = false) String minSize, @RequestParam(required = false) String rooms, @RequestParam(required = false) String type, @RequestParam(required = false) String age, @RequestParam(required = false) String condition, @RequestParam(required = false) String minGround, @RequestParam(required = false) String postedAfter, @RequestParam(required = false) Integer limit, @RequestParam(required = false) Integer page, @RequestParam(required = false) String postedToday) {
         List<House> houseList = houseDao.getAllHouses().stream()
                 .filter(house -> house.getStateName() != null)
                 .filter(house -> house.getStateName().equalsIgnoreCase(state))
@@ -64,12 +64,11 @@ public class HouseRestController {
                 .filter(house -> house.getLocationName().equalsIgnoreCase(location))
                 .collect(Collectors.toList());
 
-        houseList = processFilters(maxPrice, minSize, rooms, type, age, condition, minGround, postedAfter, limit, page, houseList);
-
+        houseList = processFilters(maxPrice, minSize, rooms, type, age, condition, minGround, postedAfter, limit, page, houseList, postedToday);
         return houseList;
     }
 
-    private List<House> processFilters(String maxPrice, String minSize, String rooms, String type, String age, String condition, String minGround, String postedAfter, Integer limit, Integer page, List<House> houseList) {
+    private List<House> processFilters(String maxPrice, String minSize, String rooms, String type, String age, String condition, String minGround, String postedAfter, Integer limit, Integer page, List<House> houseList, String postedToday) {
         if (maxPrice != null) {
             houseList = filterForMaxPrice(houseList, maxPrice);
         }
@@ -93,6 +92,9 @@ public class HouseRestController {
         }
         if (postedAfter != null) {
             houseList = filterForPostedAfter(houseList, postedAfter);
+        }
+        if (postedToday != null) {
+            houseList = filterForPostedAfter(houseList, LocalDateTime.of(LocalDate.now(), LocalTime.MIDNIGHT));
         }
         if (limit != null && page == null) {
             houseList = paginateList(houseList, limit, 1);
@@ -228,23 +230,27 @@ public class HouseRestController {
         if (isValidParameter(postedAfter)) {
             String postedAfterDateTimeStr = postedAfter + " 00:00";
             LocalDateTime postedAfterDateTime = LocalDateTime.parse(postedAfterDateTimeStr, DateTimeFormatter.ofPattern("ddMMyyyy HH:mm"));
-            List<House> result = houseList.stream()
-                    .filter(house -> house.getEditLocalDateTime() != null)
-                    .filter(house -> house.getEditLocalDateTime().isAfter(postedAfterDateTime))
-                    .collect(Collectors.toList());
-            if (result.isEmpty()) {
-                result.add(houseList.stream()
-                        .filter(house -> house.getEditLocalDateTime() != null)
-                        .max(Comparator.comparing(House::getEditLocalDateTime))
-                        .orElse(null));
-            }
-            return result;
-
+            return filterForPostedAfter(houseList, postedAfterDateTime);
         } else {
             return houseList;
         }
     }
-    
+
+    private List<House> filterForPostedAfter(List<House> houseList, LocalDateTime postedAfter) {
+        List<House> result = houseList.stream()
+                .filter(house -> house.getEditLocalDateTime() != null)
+                .filter(house -> house.getEditLocalDateTime().isAfter(postedAfter))
+                .collect(Collectors.toList());
+        if (result.isEmpty()) {
+            result.add(houseList.stream()
+                    .filter(house -> house.getEditLocalDateTime() != null)
+                    .max(Comparator.comparing(House::getEditLocalDateTime))
+                    .orElse(null));
+        }
+        return result;
+    }
+
+
     private boolean isValidParameter(String param) {
         return param != null && !param.isEmpty() && !param.equalsIgnoreCase("0");
     }
