@@ -9,7 +9,6 @@ import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
@@ -25,14 +24,13 @@ public class ScheduledDataFetchService {
     @Autowired
     ParserService parserService;
 
-    @PostConstruct
     public String fetchData() {
         int entriesBefore = dao.getAllHouses().size();
         try {
             fetchDataForArea(4);
-//            for (int i = 1; i <= 9; i++) {
-//                fetchDataForArea(i);
-//            }
+            for (int i = 1; i <= 9; i++) {
+                fetchDataForArea(i);
+            }
         } catch (Exception e) {
             System.out.println(e.getLocalizedMessage());
         }
