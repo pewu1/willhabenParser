@@ -25,6 +25,7 @@ public class HTMLRenderer {
 
     public String getHTMLNewestUpperAustria() {
         return getHTML(dao.getAllHouses().stream()
+                .filter(house -> house.getStateName() != null)
                 .filter(house -> house.getStateName().equals("Oberösterreich"))
                 .filter(this::getDefaultFilters)
                 .collect(Collectors.toList()));
