@@ -95,6 +95,11 @@
             <version>1.10.0</version>
             <type>maven-plugin</type>
         </dependency>
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>smtp</artifactId>
+            <version>1.6.5</version>
+        </dependency>
     </dependencies>
 
     <build>
