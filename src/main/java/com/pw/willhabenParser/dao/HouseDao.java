@@ -67,6 +67,15 @@ public class HouseDao {
         return sortEditDate(houseList);
     }
 
+    public List<House> findHouseById(String id) {
+        if (houseList.isEmpty()) {
+            loadHouses();
+        }
+        return sortEditDate(houseList).stream()
+                .filter(house -> house.getId().equals(id))
+                .collect(Collectors.toList());
+    }
+
     public Set<String> getVerifiedLinks() {
         return linksSet;
     }

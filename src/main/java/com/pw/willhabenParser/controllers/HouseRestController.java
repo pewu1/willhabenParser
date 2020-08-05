@@ -69,6 +69,11 @@ public class HouseRestController {
         return houseList;
     }
 
+    @GetMapping(value = "/id/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    public List<House> getForLocation(@PathVariable String id) {
+        return houseDao.findHouseById(id);
+    }
+
     private List<House> processFilters(String maxPrice, String minSize, String rooms, String type, String age, String condition, String minGround, String postedAfter, Integer limit, Integer page, List<House> houseList, String postedToday) {
         if (maxPrice != null) {
             houseList = filterForMaxPrice(houseList, maxPrice);

@@ -2,13 +2,23 @@ import React from "react";
 import axios from "axios";
 import Coverflow from "react-coverflow";
 import { Button } from "antd";
+import {
+  EmailShareButton,
+  FacebookShareButton,
+  WhatsappShareButton,
+} from "react-share";
+
+import { EmailIcon, FacebookIcon, WhatsappIcon } from "react-share";
 
 class AppComponent extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       houses: [],
-      link: "https://willhaben-parser.herokuapp.com/houses/?limit=25",
+      link:
+        window.link != null
+          ? window.link
+          : "https://willhaben-parser.herokuapp.com/houses/?limit=25",
       pageNumber: 1,
       loading: true,
     };
@@ -26,7 +36,7 @@ class AppComponent extends React.Component {
     });
   }
 
-  handleClick(parameter, value) {
+  applyFilter(parameter, value) {
     let newLink;
     if (this.state.link.includes(parameter)) {
       let lastIndexOfParam = this.state.link.lastIndexOf(parameter + "=");
@@ -41,6 +51,11 @@ class AppComponent extends React.Component {
     } else {
       newLink = this.state.link + "&" + parameter + "=" + value;
     }
+    return newLink;
+  }
+
+  handleClick(parameter, value) {
+    let newLink = this.applyFilter(parameter, value);
     this.fetchdata(newLink);
     this.setState({ link: newLink });
   }
@@ -110,7 +125,6 @@ class AppComponent extends React.Component {
 
   getCurrentLocationFromLink() {
     let startIndexOfValue = this.state.link.indexOf("houses/") + 7;
-    let linkBegin = this.state.link.substring(0, startIndexOfValue);
     let restOfLink = this.state.link.substring(startIndexOfValue);
     let parametersStartIndex = restOfLink.indexOf("?");
     let toProcess = restOfLink.substring(0, parametersStartIndex);
@@ -149,26 +163,37 @@ class AppComponent extends React.Component {
     }
   }
 
+  getShareLink(house) {
+    console.log("https://willhaben-parser.herokuapp.com/houses/id/" + house.id);
+    return "https://willhaben-parser.herokuapp.com/houses/id/" + house.id;
+  }
+
   render() {
     return (
-      <div style={{ margin: "0px" }}>
+      <div style={{ margin: "0px", backgroundColor: "white" }}>
         {this.state.loading ? (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              height: "calc(100vh - 50px)",
-            }}
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/c/cf/SVG_animated_loading_icon2.svg"
-              alt="Loading..."
-            />
+          <div>
+            <div style={{ textAlign: "center" }}>
+              Application is starting, this can take up to two minutes...
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                height: "calc(100vh - 50px)",
+              }}
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/c/cf/SVG_animated_loading_icon2.svg"
+                alt="Loading..."
+              />
+            </div>
           </div>
         ) : (
-          <div>
+          <div style={{ backgroundColor: "white" }}>
             <Coverflow
-              displayQuantityOfSide={2}
+              active={1}
+              displayQuantityOfSide={1}
               navigation={false}
               enableHeading={false}
               media={{
@@ -178,133 +203,153 @@ class AppComponent extends React.Component {
                 },
                 "@media (min-width: 900px)": {
                   width: "100%",
-                  height: "90vh",
+                  height: "95vh",
                 },
               }}
             >
               {this.state.houses.map((house) => (
                 <div style={{ backgroundColor: "white" }}>
-                  <a
-                    href={house.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <img
-                      src={
-                        house.pictureLink != null
-                          ? house.pictureLink
-                          : "https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg"
-                      }
-                      width="100%"
-                      style={{ maxHeight: "400px" }}
-                      alt={house.link}
-                      data-action={house.link}
-                    />
-                  </a>
-                  <Button
-                    type="primary"
-                    onClick={(event) =>
-                      this.handleClick("maxPrice", house.price)
-                    }
-                  >
-                    {new Intl.NumberFormat("de-DE", {
-                      style: "currency",
-                      currency: "EUR",
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0,
-                    }).format(house.price)}
-                  </Button>
-                  {house.size != null ? (
-                    <Button
-                      type="primary"
-                      onClick={(event) => this.handleClick("size", house.size)}
+                  <div>
+                    <a
+                      href={house.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
-                      {house.size} m²
-                    </Button>
-                  ) : (
-                    ""
-                  )}
-                  {house.groundArea != null ? (
+                      <img
+                        src={
+                          house.pictureLink != null
+                            ? house.pictureLink
+                            : "https://upload.wikimedia.org/wikipedia/commons/a/ac/No_image_available.svg"
+                        }
+                        width="100%"
+                        style={{ maxHeight: "400px" }}
+                        alt={house.link}
+                        data-action={house.link}
+                      />
+                    </a>
+                  </div>
+                  <div style={{ float: "left" }}>
                     <Button
                       type="primary"
                       onClick={(event) =>
-                        this.handleClick("ground", house.groundArea)
+                        this.handleClick("maxPrice", house.price)
                       }
                     >
-                      {house.groundArea} m²
+                      {new Intl.NumberFormat("de-DE", {
+                        style: "currency",
+                        currency: "EUR",
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }).format(house.price)}
                     </Button>
-                  ) : (
-                    ""
-                  )}
-                  {house.rooms != null ? (
+                    {house.size != null ? (
+                      <Button
+                        type="primary"
+                        onClick={(event) =>
+                          this.handleClick("size", house.size)
+                        }
+                      >
+                        {house.size} m²
+                      </Button>
+                    ) : (
+                      ""
+                    )}
+                    {house.groundArea != null ? (
+                      <Button
+                        type="primary"
+                        onClick={(event) =>
+                          this.handleClick("ground", house.groundArea)
+                        }
+                      >
+                        {house.groundArea} m²
+                      </Button>
+                    ) : (
+                      ""
+                    )}
+                    {house.rooms != null ? (
+                      <Button
+                        type="primary"
+                        onClick={(event) =>
+                          this.handleClick("rooms", house.rooms)
+                        }
+                      >
+                        {house.rooms} rooms
+                      </Button>
+                    ) : (
+                      ""
+                    )}
+                    {house.objectType != null ? (
+                      <Button
+                        type="primary"
+                        onClick={(event) =>
+                          this.handleClick("type", house.objectType)
+                        }
+                      >
+                        {house.objectType}
+                      </Button>
+                    ) : (
+                      ""
+                    )}
+                  </div>
+                  <div style={{ float: "left" }}>
+                    <Button type="primary">{house.postalCode}</Button>
                     <Button
                       type="primary"
                       onClick={(event) =>
-                        this.handleClick("rooms", house.rooms)
+                        this.changeLocation(
+                          house.stateName,
+                          house.districtName,
+                          house.locationName
+                        )
                       }
                     >
-                      {house.rooms} rooms
+                      {house.locationName}
                     </Button>
-                  ) : (
-                    ""
-                  )}
-                  <br></br>
-                  {house.objectType != null ? (
                     <Button
                       type="primary"
                       onClick={(event) =>
-                        this.handleClick("type", house.objectType)
+                        this.changeDistrict(house.stateName, house.districtName)
                       }
                     >
-                      {house.objectType}
+                      {house.districtName}
                     </Button>
-                  ) : (
-                    ""
-                  )}
-                  <br></br>
-                  <Button type="primary">{house.postalCode}</Button>
-                  <Button
-                    type="primary"
-                    onClick={(event) =>
-                      this.changeLocation(
-                        house.stateName,
-                        house.districtName,
-                        house.locationName
-                      )
-                    }
+                    <Button
+                      type="primary"
+                      onClick={(event) => this.changeState(house.stateName)}
+                    >
+                      {house.stateName}
+                    </Button>
+                  </div>
+                  <div style={{ float: "left" }}>
+                    <Button
+                      type="primary"
+                      onClick={(event) =>
+                        this.handleClick(
+                          "postedAfter",
+                          house.editDate.replace(".", "")
+                        )
+                      }
+                    >
+                      {house.editDate}
+                    </Button>
+                  </div>
+                  <div
+                    style={{
+                      float: "right",
+                      textAlign: "right",
+                      fontSize: "10px",
+                    }}
                   >
-                    {house.locationName}
-                  </Button>
-                  <Button
-                    type="primary"
-                    onClick={(event) =>
-                      this.changeDistrict(house.stateName, house.districtName)
-                    }
-                  >
-                    {house.districtName}
-                  </Button>
-                  <br></br>
-                  <table>
-                    <tbody>
-                      <tr>
-                        <td>
-                          <Button
-                            type="primary"
-                            onClick={(event) =>
-                              this.changeState(house.stateName)
-                            }
-                          >
-                            {house.stateName}
-                          </Button>
-                        </td>
-                        <td width="80%">
-                          <div style={{ textAlign: "right", fontSize: "10px" }}>
-                            {house.editDate}
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                    <FacebookShareButton url={this.getShareLink(house)}>
+                      <FacebookIcon size="20"></FacebookIcon>
+                    </FacebookShareButton>
+                    <WhatsappShareButton url={house.link}>
+                      <WhatsappIcon size="20"></WhatsappIcon>
+                    </WhatsappShareButton>
+                    <EmailShareButton url={house.link}>
+                      <EmailIcon size="20"></EmailIcon>
+                    </EmailShareButton>
+                  </div>
                 </div>
               ))}
             </Coverflow>
@@ -353,6 +398,14 @@ class AppComponent extends React.Component {
             {this.getFilter("type") != null ? (
               <Button onClick={(event) => this.removeFilter("type")}>
                 {this.getFilter("type")}
+              </Button>
+            ) : (
+              ""
+            )}
+
+            {this.getFilter("postedAfter") != null ? (
+              <Button onClick={(event) => this.removeFilter("postedAfter")}>
+                {this.getFilter("postedAfter")}
               </Button>
             ) : (
               ""

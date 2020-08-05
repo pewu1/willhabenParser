@@ -5,6 +5,11 @@
     <title>Houses</title>
   </head>
   <body>
+    <script>
+      let queryString = window.location.search;
+      let urlParams = new URLSearchParams(queryString);
+      window.link = urlParams.get("link");
+    </script>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="react"></div>
   </body>
