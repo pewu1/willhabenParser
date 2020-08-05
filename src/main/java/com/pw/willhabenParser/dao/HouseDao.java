@@ -48,7 +48,6 @@ public class HouseDao {
         TableUtils.createTableIfNotExists(amazonDynamoDB, tableRequest);
     }
 
-    @PostConstruct
     private void loadHouses() {
         System.out.println("Loading data from AWS...");
         Iterable<House> houses = repository.findAll();
