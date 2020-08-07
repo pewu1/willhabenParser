@@ -15,6 +15,7 @@ class AppComponent extends React.Component {
     super(props);
     this.state = {
       houses: [],
+      defaultLink: "https://willhaben-parser.herokuapp.com/houses/?limit=25",
       link:
         window.link != null
           ? window.link
@@ -164,8 +165,26 @@ class AppComponent extends React.Component {
   }
 
   getShareLink(house) {
-    console.log("https://willhaben-parser.herokuapp.com/houses/id/" + house.id);
-    return "https://willhaben-parser.herokuapp.com/houses/id/" + house.id;
+    return (
+      "https://willhaben-parser.herokuapp.com/index.html?link=https://willhaben-parser.herokuapp.com/houses/id/" +
+      house.id
+    );
+  }
+
+  getIdFromLink() {
+    if (this.state.link.includes("houses/id/")) {
+      let startIndexOfValue = this.state.link.indexOf("houses/id/") + 10;
+      console.log(startIndexOfValue);
+      console.log(this.state.link.substring(startIndexOfValue));
+      if (startIndexOfValue > 0) {
+        return this.state.link.substring(startIndexOfValue);
+      }
+    }
+    return null;
+  }
+
+  resetLink() {
+    this.setState({ link: this.state.defaultLink });
   }
 
   render() {
@@ -442,6 +461,14 @@ class AppComponent extends React.Component {
                 }
               >
                 {this.getLocationFromLink()}
+              </Button>
+            ) : (
+              ""
+            )}
+            {console.log(this.getIdFromLink())}
+            {this.getIdFromLink() != null ? (
+              <Button onClick={(event) => this.resetLink()}>
+                ID: {this.getIdFromLink()}
               </Button>
             ) : (
               ""
