@@ -26,6 +26,16 @@ function renderCarousel(props) {
           <HousePhotoComponent house={house}></HousePhotoComponent>
           <HouseDataComponent
             house={house}
+            handleClick={(parameter, value) =>
+              props.handleClick(parameter, value)
+            }
+            changeLocation={(state, district, location) =>
+              props.changeLocation(state, district, location)
+            }
+            changeDistrict={(state, district) =>
+              props.changeDistrict(state, district)
+            }
+            changeState={(state) => props.changeState(state)}
             getMapsLink={props.getMapsLink}
             getShareLink={props.getShareLink}
           ></HouseDataComponent>
