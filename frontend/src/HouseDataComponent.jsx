@@ -21,7 +21,7 @@ function getHouseData(props) {
             currency: "EUR",
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
-          }).format(props.house.price.replaceAll(".", "").replaceAll(",", "."))}
+          }).format(props.house.price)}
         </Button>
         {props.house.size != null ? (
           <Button

@@ -55,7 +55,12 @@ function getFilters(props) {
 
       {props.getFilter("postedAfter") != null ? (
         <Button onClick={(event) => props.removeFilter("postedAfter")}>
-          {props.getFilter("postedAfter")}
+          {">= " +
+            props.getFilter("postedAfter").substring(0, 2) +
+            "." +
+            props.getFilter("postedAfter").substring(2, 4) +
+            "." +
+            props.getFilter("postedAfter").substring(4)}
         </Button>
       ) : (
         ""
