@@ -214,7 +214,7 @@ class AppComponent extends React.Component {
               getStateFromLink={() => this.getStateFromLink()}
               getDistrictFromLink={() => this.getDistrictFromLink()}
               getLocationFromLink={() => this.getLocationFromLink()}
-              getIdFromLink={() => this.getIdFromLink}
+              getIdFromLink={() => this.getIdFromLink()}
               changeLocation={(state, district, location) =>
                 this.changeLocation(state, district, location)
               }
@@ -222,7 +222,7 @@ class AppComponent extends React.Component {
                 this.changeDistrict(state, district)
               }
               changeState={(state) => this.changeState(state)}
-              resetLink={this.resetLink}
+              resetLink={() => this.resetLink()}
             ></FiltersComponent>
           </div>
         )}
