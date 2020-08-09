@@ -106,7 +106,7 @@ function getHouseData(props) {
           onClick={(event) =>
             props.handleClick(
               "postedAfter",
-              props.house.editDate.replace(".", "")
+              props.house.editDate.replaceAll(".", "")
             )
           }
         >
