@@ -52,6 +52,11 @@ public class ScheduledDataFetchService extends Thread {
             doc = Jsoup.connect(BUY_HOUSE_URL + "&page=" + counter).get();
             resultList = doc.getElementById("resultlist");
             counter++;
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                System.out.println(e.getLocalizedMessage());
+            }
         }
     }
 
