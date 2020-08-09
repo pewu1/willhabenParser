@@ -187,6 +187,10 @@ class AppComponent extends React.Component {
     this.setState({ link: this.state.defaultLink });
   }
 
+  getMapsLink(house) {
+    return `https://www.google.com/maps/search/${house.location}`;
+  }
+
   render() {
     return (
       <div style={{ margin: "0px", backgroundColor: "white" }}>
@@ -359,6 +363,13 @@ class AppComponent extends React.Component {
                       fontSize: "10px",
                     }}
                   >
+                    <a
+                      href={this.getMapsLink(house)}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      <img src="/img/maps_icon.png" alt="Map" height="20px" />
+                    </a>
                     <FacebookShareButton url={this.getShareLink(house)}>
                       <FacebookIcon size="20"></FacebookIcon>
                     </FacebookShareButton>
