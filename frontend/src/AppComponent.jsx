@@ -10,13 +10,15 @@ class AppComponent extends React.Component {
     super(props);
     this.state = {
       houses: [],
-      defaultLink: "https://willhaben-parser.herokuapp.com/houses/?limit=25",
+      defaultLink:
+        "https://willhaben-parser.herokuapp.com/houses/?param&limit=25",
       link:
         window.link != null
           ? window.link
-          : "https://willhaben-parser.herokuapp.com/houses/?limit=25",
-      pageNumber: 1,
+          : "https://willhaben-parser.herokuapp.com/houses/?param&limit=25",
+      page: 1,
       loading: true,
+      removedHouses: [{}],
     };
   }
 
@@ -27,9 +29,9 @@ class AppComponent extends React.Component {
   fetchdata(link) {
     this.setState({ loading: true });
     axios.get(`${link != null ? link : this.state.link}`).then((res) => {
-      const newHouses = res.data;
-      this.setState({ houses: newHouses, loading: false });
+      this.setState({ houses: res.data, loading: false });
     });
+    this.filterRemovedHouses();
   }
 
   applyFilter(parameter, value) {
@@ -186,6 +188,31 @@ class AppComponent extends React.Component {
     return `https://www.google.com/maps/search/${house.location}`;
   }
 
+  loadMore() {
+    let nextPage = this.state.page + 1;
+    let currentLimit = this.getFilter("limit");
+    this.handleClick("limit", currentLimit * (nextPage / this.state.page));
+    this.setState({ page: nextPage });
+  }
+
+  removeHouse(house) {
+    let removedHousesArray = this.state.removedHouses;
+    removedHousesArray.push(house);
+    this.setState({ removedHouses: removedHousesArray });
+    this.filterRemovedHouses();
+  }
+
+  filterRemovedHouses() {
+    if (this.state.removedHouses != null) {
+      let array = this.state.houses;
+      this.state.removedHouses.forEach((removedHouse) => {
+        let index = array.indexOf(removedHouse);
+        array.splice(index, 1);
+      });
+      this.setState({ houses: array });
+    }
+  }
+
   render() {
     return (
       <div style={{ margin: "0px", backgroundColor: "white" }}>
@@ -207,6 +234,7 @@ class AppComponent extends React.Component {
               changeState={(state) => this.changeState(state)}
               getMapsLink={(house) => this.getMapsLink(house)}
               getShareLink={(house) => this.getShareLink(house)}
+              removeHouse={(house) => this.removeHouse(house)}
             ></CarouselComponent>
             <FiltersComponent
               getFilter={(param) => this.getFilter(param)}
@@ -223,6 +251,7 @@ class AppComponent extends React.Component {
               }
               changeState={(state) => this.changeState(state)}
               resetLink={() => this.resetLink()}
+              loadMore={() => this.loadMore()}
             ></FiltersComponent>
           </div>
         )}

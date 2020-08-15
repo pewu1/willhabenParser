@@ -67,9 +67,26 @@ function getHouseData(props) {
         ) : (
           ""
         )}
+        <Button
+          type="primary"
+          onClick={(event) => props.removeHouse(props.house)}
+        >
+          <img src="/img/remove.png" alt="Remove" height="13px" />
+        </Button>
       </div>
       <div style={{ float: "left" }}>
-        <Button type="primary">{props.house.postalCode}</Button>
+        <Button
+          type="primary"
+          onClick={(event) =>
+            props.changeLocation(
+              props.house.stateName,
+              props.house.districtName,
+              props.house.locationName
+            )
+          }
+        >
+          {props.house.postalCode}
+        </Button>
         <Button
           type="primary"
           onClick={(event) =>

@@ -108,6 +108,7 @@ function getFilters(props) {
       ) : (
         ""
       )}
+      <Button onClick={(event) => props.loadMore()}>LOAD MORE</Button>
     </div>
   );
 }

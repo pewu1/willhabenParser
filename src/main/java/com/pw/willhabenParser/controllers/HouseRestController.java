@@ -178,11 +178,10 @@ public class HouseRestController {
 
     private List<House> filterForType(List<House> houseList, String type) {
         if (isValidParameter(type)) {
-            List<House> result = houseList.stream()
+            return houseList.stream()
                     .filter(house -> house.getObjectType() != null)
                     .filter(house -> house.getObjectType().equalsIgnoreCase(type))
                     .collect(Collectors.toList());
-            return result;
         } else {
             return houseList;
         }
@@ -190,11 +189,10 @@ public class HouseRestController {
 
     private List<House> filterForAge(List<House> houseList, String age) {
         if (isValidParameter(age)) {
-            List<House> result = houseList.stream()
+            return houseList.stream()
                     .filter(house -> house.getAge() != null)
                     .filter(house -> house.getAge().equalsIgnoreCase(age))
                     .collect(Collectors.toList());
-            return result;
         } else {
             return houseList;
         }
@@ -202,11 +200,10 @@ public class HouseRestController {
 
     private List<House> filterForCondition(List<House> houseList, String condition) {
         if (isValidParameter(condition)) {
-            List<House> result = houseList.stream()
+            return houseList.stream()
                     .filter(house -> house.getCondition() != null)
                     .filter(house -> house.getCondition().equalsIgnoreCase(condition))
                     .collect(Collectors.toList());
-            return result;
         } else {
             return houseList;
         }

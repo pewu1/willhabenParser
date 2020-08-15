@@ -2,11 +2,12 @@ import React from "react";
 import Coverflow from "react-coverflow";
 import HousePhotoComponent from "./HousePhotoComponent";
 import HouseDataComponent from "./HouseDataComponent";
+import LoadMoreComponent from "./LoadMoreComponent";
 
 function renderCarousel(props) {
   return (
     <Coverflow
-      active={1}
+      active={0}
       displayQuantityOfSide={1}
       navigation={false}
       enableHeading={false}
@@ -22,7 +23,7 @@ function renderCarousel(props) {
       }}
     >
       {props.houses.map((house) => (
-        <div style={{ backgroundColor: "white" }}>
+        <div style={{ backgroundColor: "white" }} key={house.id}>
           <HousePhotoComponent house={house}></HousePhotoComponent>
           <HouseDataComponent
             house={house}
@@ -38,6 +39,7 @@ function renderCarousel(props) {
             changeState={(state) => props.changeState(state)}
             getMapsLink={props.getMapsLink}
             getShareLink={props.getShareLink}
+            removeHouse={props.removeHouse}
           ></HouseDataComponent>
         </div>
       ))}
