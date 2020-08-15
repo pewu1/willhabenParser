@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.util.Set;
+
 @RestController
 public class DataController {
 
@@ -22,10 +24,13 @@ public class DataController {
 
     @GetMapping("/fetchdata")
     public String keepAlive() {
+        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+        System.out.println("threads=" + threadSet.size());
+        System.out.println(threadSet);
         try {
             scheduledDataFetchService.start();
         } catch (IllegalStateException e) {
-            return e.getLocalizedMessage();
+            return "Thread is already running";
         }
         return "OK";
     }
