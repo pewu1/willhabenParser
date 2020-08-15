@@ -24,7 +24,7 @@ public class DataController {
     public String keepAlive() {
         try {
             scheduledDataFetchService.start();
-        } catch (IllegalStateException e) {
+        } catch (IllegalThreadStateException e) {
             return "Thread is already running";
         }
         return "OK";
