@@ -109,7 +109,6 @@ function getFilters(props) {
         ""
       )}
       <Button onClick={(event) => props.loadMore()}>LOAD MORE</Button>
-      <Button onClick={(event) => props.resetRemoved()}>RESET REMOVED</Button>
     </div>
   );
 }
