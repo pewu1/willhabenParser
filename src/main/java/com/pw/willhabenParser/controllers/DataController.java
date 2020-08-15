@@ -29,7 +29,7 @@ public class DataController {
         System.out.println(threadSet);
         try {
             scheduledDataFetchService.start();
-        } catch (IllegalStateException e) {
+        } catch (IllegalThreadStateException e) {
             return "Thread is already running";
         }
         return "OK";

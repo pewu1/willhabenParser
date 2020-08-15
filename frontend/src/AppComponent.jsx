@@ -1,6 +1,6 @@
 import React from "react";
 import axios from "axios";
-
+import { useCookies } from "react-cookie";
 import LoaderComponent from "./LoaderComponent";
 import CarouselComponent from "./CarouselComponent";
 import FiltersComponent from "./FiltersComponent";
@@ -18,12 +18,15 @@ class AppComponent extends React.Component {
           : "https://willhaben-parser.herokuapp.com/houses/?param&limit=25",
       page: 1,
       loading: true,
-      removedHouses: [{}],
+      removedHouses: [],
     };
   }
 
   componentDidMount() {
     this.fetchdata();
+    let removedHouses = useCookies(["removedHouses"]);
+    this.setState({ removedHouses: removedHouses });
+    this.filterRemovedHouses();
   }
 
   fetchdata(link) {
@@ -198,6 +201,7 @@ class AppComponent extends React.Component {
   removeHouse(house) {
     let removedHousesArray = this.state.removedHouses;
     removedHousesArray.push(house);
+    useCookies("removedHouses", removedHousesArray, { path: "/" });
     this.setState({ removedHouses: removedHousesArray });
     this.filterRemovedHouses();
   }
@@ -211,6 +215,11 @@ class AppComponent extends React.Component {
       });
       this.setState({ houses: array });
     }
+  }
+
+  resetRemoved() {
+    this.setState({ removedHouses: [] });
+    this.fetchdata(this.state.link);
   }
 
   render() {
@@ -252,6 +261,7 @@ class AppComponent extends React.Component {
               changeState={(state) => this.changeState(state)}
               resetLink={() => this.resetLink()}
               loadMore={() => this.loadMore()}
+              resetRemoved={() => this.resetRemoved()}
             ></FiltersComponent>
           </div>
         )}
