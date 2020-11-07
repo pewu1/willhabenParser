@@ -171,8 +171,6 @@ class AppComponent extends React.Component {
   getIdFromLink() {
     if (this.state.link.includes("houses/id/")) {
       let startIndexOfValue = this.state.link.indexOf("houses/id/") + 10;
-      console.log(startIndexOfValue);
-      console.log(this.state.link.substring(startIndexOfValue));
       if (startIndexOfValue > 0) {
         return this.state.link.substring(startIndexOfValue);
       }
